@@ -1,0 +1,114 @@
+body {
+	margin: 0px;	
+	padding: 0px;	
+}
+
+body#myExample {
+	font-family: "Arial", "Helvetica", sans-serif;
+}
+
+#exampleBlurb {
+	background: #2f2626 !important;
+	text-align: justify !important;
+	color: white !important;
+	font: 14px Georgia, Serif !important;
+	position: relative;
+	margin-top: -1em;
+	padding-top: 1em;
+	zoom: 1;
+	width: 100% !important;
+	z-index: 9999 !important;
+	line-height: 2.4em;
+	padding-bottom: 1em;
+}
+
+#exampleBlurb p {
+	padding: 0 10px;
+	line-height: 1.7em;
+}
+
+#exampleBlurb a {
+	color: #ccccff;
+}
+
+#thirdPartyExample {
+	margin: 10px;	
+}
+
+#myExample fieldset {
+	width: 50em;
+	margin: 1em auto;
+	padding: 1em;
+	
+}
+
+#myExample legend {
+	font-weight: bold;
+	
+}
+
+.formTable {
+	width: 40em;
+	margin: 0 auto;
+}
+
+.formTable th {
+	vertical-align: top;
+	text-align: right;
+	width: 20em;
+}
+
+.formTable td,
+.formTable input,
+.formTable textarea {
+	width: 20em;
+}
+
+.formTable td input[type="checkbox"],
+.formTable td input[type="radio"] {
+	width: auto;	
+}
+
+.formTable textarea {
+	height: 8em;
+}
+
+.formTable input.small {
+	width: 4em;
+}
+
+.buttonRow {
+	text-align: center;
+}
+
+#exampleIntro {
+	opacity: 0.7;
+	position: absolute;
+	padding: 0.7em;
+	top: 0;
+	left: 0;
+          background: #2f2626 !important;
+          text-align: justify  !important;
+          color:white !important;
+          font: 14px Georgia, Serif !important;
+          position: relative;
+          zoom: 1;
+          
+          z-index: 10000 !important;
+}
+
+#exampleIntro p {
+	line-height: 2.4em;
+}
+
+#exampleIntro a {
+	color: #ccccff;
+}
+
+.initiallyHidden {
+	display: none;
+}
+
+ul.exampleList > li {
+	margin-bottom: 2em;
+}

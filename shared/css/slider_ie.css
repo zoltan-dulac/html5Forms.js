@@ -1,0 +1,41 @@
+.fd-slider-handle
+        {
+        background:none;
+        filter:progid:DXImageTransform.Microsoft.AlphaImageLoader(enabled=true,sizingMethod=crop,src='http://www.frequency-decoder.com/demo/slider-revisited/slider-disabled.png');
+        outline:expression(hideFocus='true');
+        }
+.fd-slider-hover .fd-slider-handle
+        {
+        background:none;
+        filter:progid:DXImageTransform.Microsoft.AlphaImageLoader(enabled=true,sizingMethod=crop,src='http://www.frequency-decoder.com/demo/slider-revisited/slider-disabled-1.png');
+        }
+.focused .fd-slider-handle
+        {
+        background:none;
+        filter:progid:DXImageTransform.Microsoft.AlphaImageLoader(enabled=true,sizingMethod=crop,src='http://www.frequency-decoder.com/demo/slider-revisited/slider.png');
+        }
+.fd-fc-slider-hover .fd-slider-handle
+        {
+        background:none;
+        filter:progid:DXImageTransform.Microsoft.AlphaImageLoader(enabled=true,sizingMethod=crop,src='http://www.frequency-decoder.com/demo/slider-revisited/slider-1.png');
+        }
+.fd-slider
+        {
+        cursor:hand;
+        }
+.fd-slider-bar
+        {  
+        top:8px;
+        bottom:none;
+        left:10px;
+        right:none;
+        width:expression((this.parentNode.offsetWidth - 20) + "px");
+        }
+.fd-slider-vertical .fd-slider-bar
+        {  
+        top:10px;
+        bottom:none;
+        left:8px;
+        right:none;
+        height:expression((this.parentNode.offsetHeight - 20) + "px");
+        }

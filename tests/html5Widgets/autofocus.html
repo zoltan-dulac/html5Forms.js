@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+		<meta http-equiv="X-UA-Compatible" content="IE=EmulateIE8" /> 
+		
+		<link type="text/css" rel="stylesheet" href="css/form.css" />
+		
+		
+		<title>HTML5 autofocus Attribute Test</title>
+		
+		<!-- Needed for Validation --> 
+		<script type="text/javascript" src="../../shared/js/weston.ruter.net/webforms2/webforms2_src.js">
+		</script>
+		
+	</head>
+	<body id="myExample">
+		<div id="exampleBlurb">
+		<p>
+				This is an example of a HTML5 form using the <code>autofocus</code> attribute.
+				When the page loads, it will focus on the first form field automatically.
+					<a href="http://www.useragentman.com/blog/?p=1110">Back to User Agent Man HTML5 Forms article </a>
+			</p>
+		</div>
+		
+		
+		<form>
+			<fieldset>
+			<legend>Personal Information</legend>
+		
+			<p>Thank you for giving to the Zoltan Hawryluk Entertainment Fund.  Your
+			contribution will ensure that Webmasters in Need will be able to buy
+			beer when they would otherwise do without.</p>
+		
+			<p>Form fields labelled <img src="images/asterix.gif" alt="*"/> are mandatory</p>
+			<table class="formTable">
+				<tr>
+					<th>Full Name :</th>
+					<td><input type="text" name="fullName" value="" 
+						required="required" 
+						autofocus="autofocus"
+						placeholder="Required information" />
+					<div class="description"><strong>Required.</strong> If you would like to give anonymously,
+					tough.  We find people are more generous when their Good
+					Name is on the line.</div>
+					</td>
+				</tr>
+				
+				<tr>
+					<th>Company Name :</th>
+					<td><input type="text" name="companyName" value=""  />
+					<div class="description">If you are unemployed, please leave 
+					blank.</div>
+					</td>
+				</tr>
+				
+				<tr>
+					<th>Postal/Zip Code</th>
+					<td><input type="text" name="postalCode" value="" placeholder="Required information" required="required" 
+						pattern="^([A-Za-z]\d[A-Za-z])\ {0,1}(\d[A-Za-z]\d)$"
+					/>
+					<div class="description">Please enter a valid Canadian postal code.  Valid format is <strong>H0H 0H0</strong> where <strong>H</strong>
+					is a letter and <strong>0</strong> is a number.</div>
+					
+					</td>
+				</tr>
+				<tr>
+					<td></td>
+					<td><input type="submit" value="Submit Information"/></td>
+				</tr>
+			</table>
+			</fieldset>
+		</form>
+	</body>
+</html>

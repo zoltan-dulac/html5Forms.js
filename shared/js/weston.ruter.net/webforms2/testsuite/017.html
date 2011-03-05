@@ -1,0 +1,324 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+		<meta http-equiv="content-type" content="text/html; charset=utf-8">
+		<title>Test Case 17: Form validation &laquo; Web Forms 2.0 Test Suite</title>
+		<meta name="author" content="Weston Ruter">
+		<meta name="description" content="">
+		<script type="text/javascript" src="../webforms2-p.js"></script>
+		<link rel="stylesheet" type="text/css" href="testcase.css"><!-- ISSUE: When this stylesheet is placed here after the script tag, MSIE sometimes cannot initialize Repetition Model before onload -->
+		<!-- prev --><link rel="prev" href="016.html"><!-- /prev -->
+		<!-- next --><link rel="next" href="018.html"><!-- /next -->
+		<link rel="home" href="index.html">
+		
+		<script type="text/javascript">
+		var count = 0;
+		function addEventLogEntry(type, element, model){
+			document.getElementById('doNote').style.display='none';
+		
+			count++;
+			var tbody = document.getElementById('eventLog');
+			var row = document.createElement('tr');
+			var cell;
+			
+			cell = document.createElement('th');
+			cell.appendChild(document.createTextNode(count));
+			row.appendChild(cell);
+			
+			cell = document.createElement('td');
+			cell.appendChild(document.createTextNode(type));
+			cell.className = 'type';
+			row.appendChild(cell);
+			
+			cell = document.createElement('td');
+			cell.innerHTML = element.toString();
+			if(element.getAttribute('type'))
+				cell.innerHTML += " @type='" + element.getAttribute('type') + "'"
+			//cell.appendChild(document.createTextNode(element));
+			row.appendChild(cell);
+			
+			cell = document.createElement('td');
+			cell.appendChild(document.createTextNode(model));
+			row.appendChild(cell);
+			
+			row.fadeColor = 0;
+			
+			tbody.insertBefore(row, tbody.firstChild);
+		}
+		function cleanupEventLog(){
+			var trs = document.getElementById('eventLog').getElementsByTagName('tr');
+			for(var i = 0; i < trs.length; i++){
+				;
+				if(++trs[i].fadeColor == "15"){
+					trs[i].parentNode.removeChild(trs[i]);
+					i--;
+				}
+				else {
+					var hex = trs[i].fadeColor.toString(16);
+					trs[i].style.color = "#" + hex + hex + hex + hex + hex + hex;
+				}
+			}
+		}
+		function handle_DOM2Event(event){
+			addEventLogEntry(event.type, event.target, "DOM2 Event");
+		}
+		function handle_traditionalEvent(event){
+			addEventLogEntry(event.type, event.target, "Classic Event");
+		}
+		
+		function getElementsByTagNames(/* ... */){
+			var els,i,results = [];
+			if(document.evaluate){
+				var _tagNames = [];
+				for(i = 0; i < arguments.length; i++)
+					_tagNames.push(".//" + arguments[i]);
+				els = document.evaluate(_tagNames.join('|'), this, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null); 
+				for(i = 0; i < els.snapshotLength; i++)
+					results.push(els.snapshotItem(i));
+			}
+			else {
+				for(i = 0; i < arguments.length; i++){
+					els = this.getElementsByTagName(arguments[i]);
+					for(var j = 0; j < els.length; j++){
+						results.push(els[j]);
+					}
+				}
+				if(!results.length)
+					return [];
+				
+				if($wf2.sortNodes)
+					results.sort($wf2.sortNodes);
+			}
+			return results;
+		}
+		
+		window.onload = function(){
+			var dom2EventModel = document.getElementById('dom2EventModel');
+			var oldEventModel = document.getElementById('oldEventModel');
+		
+			try {
+				if(document.addEventListener && document.createEvent('UIEvents')){
+					toggleDOM2Events(dom2EventModel.checked);
+				}
+				else throw Error();
+			}
+			catch(err){
+				dom2EventModel.checked = false;
+				dom2EventModel.disabled = true;
+				dom2EventModel.parentNode.className = 'disabled';
+				oldEventModel.checked = true;
+			}
+			toggleTraditionalEvents(oldEventModel.checked);
+			
+			window.setInterval(cleanupEventLog, 200);
+			
+			//console.info($wf2.dateToISO8601($wf2.parseISO8601("11:00:00.09", 'time'), 'time'))
+		}
+
+		function toggleDOM2Events(toggle){
+			if(toggle){
+				document.addEventListener("invalid", handle_DOM2Event, false);
+			}
+			else {
+				document.removeEventListener("invalid", handle_DOM2Event, false);
+			}
+		}
+		function toggleTraditionalEvents(toggle){
+			var els = getElementsByTagNames.apply(document, ['input','select','button','textarea']);
+			for(var i = 0; i < els.length; i++){
+				if(toggle){
+					if(!els[i].getAttribute('oninvalid') && els[i].oninvalid != handle_traditionalEvent)
+						els[i].oninvalid = handle_traditionalEvent;
+				}
+				else {
+					if(els[i].oninvalid == handle_traditionalEvent)
+						els[i].oninvalid = null;
+				}
+			}
+		}
+		function insertErrorAfter(el, message){
+			var s = document.createElement('span');
+			s.className = "errorMsg";
+			s.appendChild(document.createTextNode(message));
+			el.parentNode.insertBefore(s, el.nextSibling);
+			setTimeout(function(){
+				s.parentNode.removeChild(s);
+			}, 4000);
+		}
+		var timeoutID = 0;
+		function checkValid(){
+			if(document.forms[0].checkValidity()){
+				document.getElementById('validMsg').style.display = 'block';
+				clearTimeout(timeoutID);
+				timeoutID = setTimeout(clearValidMsg, 3000);
+			}
+			else clearValidMsg();
+		}
+		function clearValidMsg(){
+			document.getElementById('validMsg').style.display = 'none';
+			clearTimeout(timeoutID);
+		}
+		</script>
+		<style type="text/css">
+			fieldset#eventLogBox {
+				position:fixed;
+				width:45%;
+			}
+			fieldset#eventLogBox div {
+				text-align:center;
+			}
+			fieldset#eventLogBox table{
+				width:100%;
+			}
+			span.errorMsg {
+				padding-left:1em;
+				color:red;
+				font-size:8pt;
+			}
+			#validMsg {
+				background-color:lime;
+				text-align:center;
+				padding:0.5em;
+				font-weight:bold;
+				display:none;
+			}
+			*[required]:after {
+				content:'*';
+				color:red;
+			}
+			.error {
+				color:red;
+				display:none;
+			}
+			div.disabled label {
+				text-decoration:line-through;
+			}
+			div.disabled .error {
+				display:inline;
+			}
+		</style>
+		
+	</head>
+	<body>
+		<div id="testSuiteNote">
+
+			<h1>Web Forms 2.0 Test Case 17: Form validation</h1>
+			<p class="purpose">
+			This test case demonstrates functionality of the Web Forms 2.0 specification and tests the compliance of 
+			this cross-browser <a href="http://code.google.com/p/webforms2/">Web Forms 2.0 implementation</a>.</p>
+
+			 <p>The following tests all of the form validation controls.</p> 
+			
+			<div class="testSuiteNavigation">
+				<!-- prev -->&larr;&nbsp;<a href="016.html" class="prev">Autofocus on unfocusable form control</a> |<!-- /prev -->
+				<a href="index.html" class="index">Test Suite Index</a>
+				<!-- next -->| <a href="018.html" class="next">Input Controls in Nested Repetition Blocks</a>&nbsp;&rarr;<!-- /next -->
+			</div>
+			
+			<hr>
+		</div>
+  
+
+<!--<div class="wf2_errorMsg wf2_firstErrorMsg" id="favFoods_wf2_errorMsg" style="top: 858px; left: 121px;"><ol class="single"><li>A value must be supplied or selected.</li></ol></div>-->
+		<fieldset style="display:inline;">
+			<legend><strong><code>invalid</code> Event model options</strong></legend>
+			<div id='dom2EventModelOption'><input type="checkbox" id="dom2EventModel" onclick="toggleDOM2Events(this.checked)" checked="checked" />
+			<label for="dom2EventModel">Use DOM Level 2 event model</label>
+			<span class='error'>Unsupported by this browser</span>
+			</div>
+			<div><input type="checkbox" id="oldEventModel" onclick="toggleTraditionalEvents(this.checked)" />
+			<label for="oldEventModel">Use traditional event model</label></div>
+		</fieldset>
+
+		<table width="100%">
+			<tr valign=top>
+				<td>
+					<form action="javascript:void(0)" onsubmit="return false;">
+						<div id="t"><!-- repeat="template"-->
+
+							<fieldset>
+								<legend>Calendar controls</legend>
+								<ul>
+									<li>type=datetime <input type="datetime" name="d1" value="2007-01-02T10:10:10.10Z" max="2008-01-02T10:10:10.10Z" min="2006-01-02T10:10:10.10Z"></li>
+									<li>type=datetime-local <input type="datetime-local" name="d2" value="2007-01-02T10:10" max="2007-12-31T24:00:00.00" min="2007-01-01T00:00:00"></li>
+									<li>type=date <input type="date" name="d3" value="2007-01-02" max="2007-12-31" min="2007-01-01"> (no step)</li>
+									<li>type=month <input type="month" name="d4" min="2006-01" value="2007-01" max="2007-12" step=2> step=2</li>
+									<li>type=week <input type="week" name="d5" value="2007-W02" max="2008-W52" min="2007-W02" step=3> step=2</li>
+									<li>type=time <input type="time" name="d6" value="10:10:10.10" max="11:00" min="09:00" step="any"> step=any</li>
+								</ul>
+							</fieldset>
+							<fieldset>
+								<legend>Text input</legend>
+								<ul>
+									<li>type=text <input type="text" name="text1" value="s" required> (required)</li>
+									<li>type=text <input type="text" name="text2" pattern="\d\d\d-\d\d-\d\d\d\d" title="Social security number (000-00-0000)"> (pattern="\d\d\d-\d\d-\d\d\d\d")</li>
+									<li>type=text <input type="text" name="text3" value="(222) 222-2222" required pattern="\(\d\d\d\) \d\d\d-\d\d\d\d" title="US telephone number (000) 000-0000"> (required pattern="\(\d\d\d\) \d\d\d-\d\d\d\d")</li>
+									<li>type=email <input type="email" name="email1" required value='invalid@email.com' oninvalid="insertErrorAfter(this, 'Incorrect email (note the default UI error message is not displayed)'); if(document.getElementById('oldEventModel').checked) handle_traditionalEvent(event); return false"> (required, overriding oninvalid)</li>
+									<li>type=text <input type="text" name="text4" required maxlength="5" value="01234"> (required)</li>
+									<li>type=text <input type="text" name="text5" pattern=""> (pattern="")</li>
+									<li>type=url <input type="url" name="url1" required value="http://www.google.com/" pattern="http://.+"> (required pattern)</li>
+									<li><textarea cols="40" rows="3" name="ta6" maxlength="10">1
+2
+3</textarea> (length should be 7) maxlength=10 (QUESTION: what about when maxlength &lt; len(defaultValue))</li>
+									<li>type=range <input type="range" name="range1" value="1"> default step = 1</li> 
+									<li>type=number <input type="number" name="number1" min="-127" value="1.5" step="0.5" max="128"> min=-127, max=128, step=0.5</li>
+								</ul>
+							</fieldset>
+							
+							<fieldset>
+								<legend>Non-input required</legend>
+								<p>Favorite color:
+								<label><input type="radio" name="favColor" value="red" required checked /> red</label>
+								<label><input type="radio" name="favColor" value="green" required /> green</label>
+								<label><input type="radio" name="favColor" value="blue" required /> blue</label></p>
+								<p>Favorite food:
+								<label><input type="checkbox" name="favFoods" value="baba ganouj" required checked /> baba ganouj</label>
+								<label><input type="checkbox" name="favFoods" value="massaman curry" required /> massaman curry</label>
+								<label><input type="checkbox" name="favFoods" value="pho" required /> pho</label></p>
+								
+								<p>Movies: <select name="movies" required multiple>
+									<option>Les Miserables</option>
+									<option>Star Wars</option>
+									<option>Count of Monte Cristo</option>
+								</select></p>
+							</fieldset>
+						</div>
+					</form>
+				</td>
+				<td width="50%">
+					<fieldset id="eventLogBox">
+					<legend><strong>Event Log</strong></legend>
+					<div style="text-align:center; ">
+						<input type="button" value="Check validity" style="font-size:13pt" onclick="checkValid()">
+					</div>
+					<div id='validMsg'>
+						Form is valid!
+					</div>
+					<table cellspacing="0" cellpadding="5">
+						<thead>
+							<tr>
+								<th>#</th>
+								<th>Type</th>
+								<th>Element</th>
+								<th>Model</th>
+							</tr>
+						</thead>
+						<tbody id="eventLog"></tbody>
+		
+					</table>
+					<div id="doNote"><em>(Click the "check validity" button above to fire events)</em></div>
+				</fieldset>
+				</td>
+		  </tr>
+		</table>
+
+		
+
+		<hr>
+		<a href="http://code.google.com/p/webforms2/">Web Forms 2.0 implementation</a><br>
+		Version: 0.5.2 (2007-11-29) <a href="http://code.google.com/p/webforms2/wiki/Changelog">changelog</a>
+		<address>
+		<a href="http://weston.ruter.net/">Weston Ruter</a>
+		</address>
+	</body>
+</html>

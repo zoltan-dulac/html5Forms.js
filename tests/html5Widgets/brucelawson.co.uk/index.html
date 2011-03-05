@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset=utf-8>
+<title>HTML 5 forms Demo</title>
+<style>
+html {
+	font-family:Verdana;
+	font-size:0.95em;
+}
+
+
+h1 {
+	color:#5999DE;
+}
+form {
+	font:100% Lucinda Grande, Sans-serif;
+	margin: 0;
+	padding: 0;
+	min-width: 500px;
+	max-width: 600px;
+	width: 560px;
+	border:1px solid #ccc;
+	padding: 10px;
+}
+.entry {
+	margin-bottom:.5em;
+}
+label {
+	color:#666666;
+	float: left;
+	width: 130px;
+	padding: 0;
+	text-align: right;
+}
+input, textarea {
+	margin-left:10px;
+}
+.button {
+	padding-left:140px;
+	padding-bottom:5px;
+	padding-top:5px;
+}
+input:required {
+outline: 1px red solid;
+color:red;
+}
+</style>
+
+		<link type="text/css" rel="stylesheet" href="../../../shared/css/slider.css">
+		<link type="text/css" rel="stylesheet" href="css/form.css" />
+		<link type="text/css" rel="stylesheet" href="../../../shared/js/jscalendar-1.0/calendar-win2k-1.css" />
+		
+		<!--[if lte IE 6]>
+        <link type="text/css" rel="stylesheet" href="../../../shared/css/slider_ie.css" />
+        <![endif]-->
+		
+		
+		<script type="text/javascript" src="../../../shared/js/modernizr.com/modernizr-1.5.min.js">
+		</script>
+		<script type="text/javascript" src="../../../shared/js/html5.js">
+		</script>
+		<script type="text/javascript" src="../../../shared/js/Timer.js">
+		</script>
+		<script type="text/javascript" src="../../../shared/js/EventHelpers.js">
+		</script>
+		
+		
+		
+		<!-- replacements for html5 tags -->
+		<script type="text/javascript" src=
+		"../../../shared/js/frequency-decoder.com/slider.js">
+		</script>
+		
+		<script type="text/javascript" src="../../../shared/js/jscolor/jscolor.js">
+		</script>
+		
+		<script type="text/javascript" src="../../../shared/js/jscalendar-1.0/calendar.js"></script>
+		<script type="text/javascript" src="../../../shared/js/jscalendar-1.0/lang/calendar-en.js"></script>
+		<script type="text/javascript" src="../../../shared/js/jscalendar-1.0/calendar-setup.js"></script>
+
+         
+	<script type="text/javascript" src="../../../shared/js/weston.ruter.net/webforms2/webforms2_src.js">
+	</script>
+	
+	
+	<script type="text/javascript" src="../../../shared/js/html5Widgets.js">
+	</script>
+	
+
+
+</head><body>
+<h1><abbr>HTML</abbr> 5 Forms  Demo</h1>
+<p>Please note, these <abbr>HTML</abbr> 5 extensions are currently  only supported in <a href="http://www.opera.com/">Opera 9.5</a>+</p>
+
+<p>A word on validation. There is a bug in the <abbr>HTML</abbr> 5 validator that protests at my use of <code>datalist</code>. It's not a bug in my code. On the <code>output</code> element, I'm telling it to update everytime the slider input is changed, via <code>onforminput</code> which hasn't yet been formally added to the spec or the validator.</p>
+<p><strong>Fields with red borders are required.</strong></p>
+<form>
+    <!-- entry end -->
+
+    <div class="entry">
+        <label for="form-1">Name (required) </label>
+        <input id="form-1"  name= "haha" type="text" autofocus required>
+        &larr; autofocus here </div>
+    <!-- entry end -->
+    <div class="entry">
+        <label for="form-2">Title</label>
+
+        <input id="form-2"   list="mylist" type="text">
+        <datalist id="mylist">
+            <option label="Mr" value="Mr">
+            <option label="Ms" value="Ms">
+            <option label="Prof" value="Mad Professor"> 
+        </datalist>
+    </div>
+    <!-- entry end -->
+    <div class="entry">
+
+        <label for="form-4">Shoesize</label>
+        <input id="form-4"  name="age" type="number" min="18" max="25">
+    </div>
+    <!-- entry end -->
+    <div class="entry">
+        <label for="form-5">Email (required)</label>
+        <input id="form-5"  name="email" type="email" required>
+    </div>
+
+    <!-- entry end -->
+    <div class="entry">
+        <label for="form-6">Webpage</label>
+        <input id="form-6"  name="url" type="url">
+    </div>
+    <!-- entry end -->
+    <div class="entry">
+        <label for="form-7">Date of Birth</label>
+
+        <input id="form-7"  name="dob" type="date">
+    </div>
+    <!-- entry end -->
+    <div class="entry">
+        <label for="form-8">Attractiveness </label>
+        <input id="form-8"  name="a" type="range" min="1" max="10" value="0">
+        <output name="result"  onforminput="this.value = a.value"  >0</output>
+    </div>
+
+    <!-- entry end -->
+    <div class="button">
+        <button type=submit>Submit</button>
+    </div>
+</form>
+<p>Thanks to <a href="http://my.opera.com/shwetankdixit">Shwetank Dixit</a> for writing the <a href="http://shwetankdixit.com/testpages/webforms2demo.htm">original demo</a> and <a href="http://lachy.id.au/">Lachlan Hunt</a> for helping me back to sanity with the validation errors.</p>
+
+<h2>Dummy text</h2>
+<p>Semua orang dilahirkan merdeka dan mempunyai martabat dan hak-hak yang sama. Mereka dikaruniai akal dan hati nurani dan hendaknya bergaul satu sama lain dalam semangat persaudaraan.</p>
+<p> Hovercraft saya penuh dengan belut.</p>
+<p>Adapun seluruh bumi, satu bahasanya dan satu logatnya. 
+Maka berangkatlah mereka ke sebelah timur dan menjumpai tanah datar di tanah Sinear, lalu menetaplah mereka di sana. 
+Mereka berkata seorang kepada yang lain: "Marilah kita membuat batu bata dan membakarnya baik-baik." Lalu bata itulah dipakai mereka sebagai batu dan ter gala-gala sebagai tanah liat. 
+Juga kata mereka: "Marilah kita dirikan bagi kita sebuah kota dengan sebuah menara yang puncaknya sampai ke langit, dan marilah kita cari nama, supaya kita jangan terserak ke seluruh bumi."</p>
+<p>Lalu turunlah TUHAN untuk melihat kota dan menara yang didirikan oleh anak-anak manusia itu, 
+    dan Ia berfirman: "Mereka ini satu bangsa dengan satu bahasa untuk semuanya. Ini barulah permulaan usaha mereka; mulai dari sekarang apapun juga yang mereka rencanakan, tidak ada yang tidak akan dapat terlaksana. 
+    Baiklah Kita turun dan mengacaubalaukan di sana bahasa mereka, sehingga mereka tidak mengerti lagi bahasa masing-masing." 
+    Demikianlah mereka diserakkan TUHAN dari situ ke seluruh bumi, dan mereka berhenti mendirikan kota itu. 
+    Itulah sebabnya sampai sekarang nama kota itu disebut Babel, karena di situlah dikacaubalaukan TUHAN bahasa seluruh bumi dan dari situlah mereka diserakkan TUHAN ke seluruh bumi.</p>
+
+</body>
+</html>

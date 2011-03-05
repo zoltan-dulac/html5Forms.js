@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta name="generator" content="HTML Tidy, see www.w3.org">
+        <meta http-equiv="Content-Type" content=
+        "text/html; utf-8">
+
+        <title>html5Widgets Test Form</title>
+		
+		<!-- This CSS file is not necessary to use html5Widgets -->
+		<link type="text/css" rel="stylesheet" href="../../shared/css/useragentmanExample.css">
+		
+		
+        <link type="text/css" rel="stylesheet" href="../../shared/css/slider.css">
+		<link type="text/css" rel="stylesheet" href="../../shared/js/jscalendar-1.0/calendar-win2k-1.css" />
+		<link type="text/css" rel="stylesheet" href="css/form.css" />
+		
+		
+		<!-- These style fixes are needed for IE6 -->
+		<!--[if lte IE 6]>
+        <link type="text/css" rel="stylesheet" href="../../shared/css/slider_ie.css" />
+		<style type="text/css">
+		output {
+			display: block;
+			position: absolute;
+			margin-left: 11em;
+			margin-top: -1.2em;
+		}
+		</style>
+		
+        <![endif]-->
+		
+		<!-- Needed for Range Element -->
+		<script type="text/javascript" src=
+		"../../shared/js/frequency-decoder.com/slider.js">
+		</script>
+		
+		<!-- Needed for Color Element -->
+		<script type="text/javascript" src="../../shared/js/jscolor/jscolor.js">
+		</script>
+		
+		<!-- Needed for Date/Time Elements -->
+		<script type="text/javascript" src="../../shared/js/jscalendar-1.0/calendar.js"></script>
+		<script type="text/javascript" src="../../shared/js/jscalendar-1.0/lang/calendar-en.js"></script>
+		<script type="text/javascript" src="../../shared/js/jscalendar-1.0/calendar-setup.js"></script>
+
+        <!-- Needed for Validation --> 
+		<script type="text/javascript" src="../../shared/js/weston.ruter.net/webforms2/webforms2.js">
+		</script>
+		
+		<!-- What glues all the above together -->
+		
+		<script type="text/javascript" src="../../shared/js/modernizr.com/modernizr-1.5.min.js">
+		</script>
+		<script type="text/javascript" src="../../shared/js/html5.js">
+		</script>
+		
+		<script type="text/javascript" src="../../shared/js/Timer.js">
+		</script>
+		<script type="text/javascript" src="../../shared/js/EventHelpers.js">
+		</script>
+		
+		<script type="text/javascript" src="../../shared/js/html5Widgets.js">
+		</script>
+		
+	
+		
+
+    </head>
+
+    <body id="myExample" class="html5Widgets-debug">
+    	<div id="exampleBlurb">
+    		<p>The following shows a variety of HTML5 form elements, including 
+			<code>color</code>.  The form uses <code>HTML5Widgets</code> and
+			Weston Ruter's  <code>webforms2</code> to add HTML5 Forms support to 
+			browsers that don't currently support it.  Browsers that partially
+			support the specification will use native functionality where applicable.
+			<a href="http://www.useragentman.com/blog/?p=1110">Back to User Agent Man HTML5 Forms article </a></p>
+    	</div>
+		
+        <form method="get" action="result.html" >
+        	
+			<fieldset>
+				<legend>HTML5Widgets Test Form</legend>
+				<p>Form fields labelled <img src="images/asterix.gif" alt="*"/> are mandatory</p>
+            <table class="formTable">
+                <tbody>
+                	<tr>
+                		<th>Legal Name:</th>
+						<td><input type="text" name="name" value="" autofocus="autofocus" />
+						<div class="description">This field has focus when the page
+						first loads because it has it's <code>autofocus</code>
+						attribute set to <code>true</code>.
+						</td>
+					</tr>
+					
+                	<tr>
+                		<th>Company Name:</th>
+						<td><input type="text" name="placeholderEl" value=""
+						placeholder="Leave blank if unemployed" />
+						<div class="description">This field has it's 
+						<code>placeholder</code> attribute set to 
+						<code>"Leave blank if unemployed"</code>
+						
+						</td>
+					</tr>
+					
+                    <tr>
+                        <th>Age:</th>
+
+                        <td>
+                        
+                        <output class="withRange" onforminput="this.value = rangeEl.value" 
+							>-</output>	
+							
+						<input type="range"  name="rangeEl" value="" 
+                        min="0" max="150" class="range" />
+						
+						
+						</td>
+                    </tr>
+
+                    
+
+                    <tr>
+                        <th>Date/Time (Local)</th>
+
+                        <td><input type="datetime-local" name="DateTimeLocalTest" value=
+                        "">
+						<div class="description">The <code>datetime</code>,
+						<code>date</code>, <code>week</code> and <code>month</code>
+						input fields all show a calendar when clicked on.  When 
+						the user chooses a date, each input shows the date in
+						a slightly different format.
+						</div>
+						
+						</td>
+                    </tr>
+					
+					<tr>
+                        <th>Date/Time (UTC)</th>
+
+                        <td><input type="datetime" name="DateTimeTest" value=
+                        "">
+						<div class="description">The <code>datetime</code>,
+						<code>date</code>, <code>week</code> and <code>month</code>
+						input fields all show a calendar when clicked on.  When 
+						the user chooses a date, each input shows the date in
+						a slightly different format.
+						</div>
+						
+						</td>
+                    </tr>
+
+                    <tr>
+                        <th>Date</th>
+
+                        <td><input type="date" name="DateTest" value=
+                        ""></td>
+                    </tr>
+
+                    <tr>
+                        <th>Month</th>
+
+                        <td><input type="month" name="MonthTest" value=
+                        ""></td>
+                    </tr>
+
+                    <tr>
+                        <th>Week</th>
+
+                        <td><input type="week" name="WeekTest" value=
+                        ""></td>
+                    </tr>
+
+                  
+
+
+                    <tr>
+                        <th>Colour</th>
+
+                        <td><input type="color" name="ColorTest" value=
+                        "" ></td>
+                    </tr>
+					
+					<tr>
+						<th>Test validity</th>
+						<td><input type="text" name="safasfas" value="" pattern="[0-9]*" required="required" placeholder="Required Field" />
+						<div class="description">To test the <strong>required</strong> and <strong>pattern</strong>
+						attributes, this field only accepts numbers.</div>
+						
+						</td>
+					</tr>
+					
+					<tr>
+						<th>Terms and Conditions:</th>
+						<td>
+							I promise to give my first born to The Evil Corporation
+							in return for a free iPad.
+							<br />
+							<br />
+							<label><input type="checkbox" class="check" name="iAgree" value="yesDammitYes" required="required"  />I submit to my new evil overlord</label>
+							
+						
+						</td>
+						
+					</tr>
+					<tr>
+						<th></th>
+						<td >
+							<input type="submit" name="submit me" value="Submit" />
+						</td>
+					</tr>
+					
+                </tbody>
+            </table>
+            </fieldset>
+        </form>
+		
+		<div id="supports">
+			
+		</div>
+    </body>
+</html>
+

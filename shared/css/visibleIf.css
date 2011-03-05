@@ -1,0 +1,23 @@
+.visibleIf, .visibleif   {
+	display: none;	
+}
+
+
+.visibleIf-visible, .visibleif-visible {
+	display: block;
+}
+
+span.visibleIf-visible, span.visibleif-visible {
+	display: inline;	
+}
+
+tr.visibleIf-visible, tr.visibleif-visible {
+	display: block;
+	display: table-row;
+}
+
+
+.visibleIf-rule, .mandatoryIf-rule, .visibleif-rule, .mandatoryif-rule {
+	display: none;
+}
+	

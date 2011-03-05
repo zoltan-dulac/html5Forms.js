@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project-module
+  type="WEB"
+  name="webforms2"
+  id="myeclipse.1279215563473"
+  context-root="/webforms2"
+  j2ee-spec="1.4"
+  archive="webforms2.war">
+  <attributes>
+    <attribute name="webrootdir" value="WebRoot" />
+  </attributes>
+</project-module>
+

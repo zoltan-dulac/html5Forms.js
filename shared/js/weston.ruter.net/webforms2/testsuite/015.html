@@ -1,0 +1,78 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+		<meta http-equiv="content-type" content="text/html; charset=utf-8">
+		<title>Test Case 15: Required Elements in Repeated Blocks &laquo; Web Forms 2.0 Test Suite</title>
+		<meta name="author" content="Weston Ruter">
+		<meta name="description" content="">
+		<script type="text/javascript" src="../webforms2-p.js"></script>
+		<link rel="stylesheet" type="text/css" href="testcase.css"><!-- ISSUE: When this stylesheet is placed here after the script tag, MSIE sometimes cannot initialize Repetition Model before onload -->
+		<!-- prev --><link rel="prev" href="014.html"><!-- /prev -->
+		<!-- next --><link rel="next" href="016.html"><!-- /next -->
+		<link rel="home" href="index.html">
+		
+		<script type="text/javascript">
+		
+		</script>
+		
+	</head>
+	<body>
+		<div id="testSuiteNote">
+
+			<h1>Web Forms 2.0 Test Case 15: Required Elements in Repeated Blocks</h1>
+			<p class="purpose">
+			This test case demonstrates functionality of the Web Forms 2.0 specification and tests the compliance of 
+			this cross-browser <a href="http://code.google.com/p/webforms2/">Web Forms 2.0 implementation</a>.</p>
+
+			 <p>The following demonstrates using the <code>required</code> attribute on controls within a repetition template. The <code>autofocus</code> attribute is also included an <code>input</code>.</p> 
+			
+			<div class="testSuiteNavigation">
+				<!-- prev -->&larr;&nbsp;<a href="014.html" class="prev">Exceptions in Repetition Events</a> |<!-- /prev -->
+				<a href="index.html" class="index">Test Suite Index</a>
+				<!-- next -->| <a href="016.html" class="next">Autofocus on unfocusable form control</a>&nbsp;&rarr;<!-- /next -->
+			</div>
+			
+			<hr>
+		</div>
+  
+
+
+
+  <form action="http://software.hixie.ch/utilities/cgi/test-tools/echo" method="post" enctype="multipart/form-data">
+   <table>
+    <thead>
+     <tr>
+      <th>Name</th>
+      <th>Number of Cats</th>
+      <th></th>
+     </tr>
+    </thead>
+    <tbody>
+     <tr repeat="0">
+      <td><input type="text" name="name_0" value="John Smith" required="required"></td>
+      <td><input type="number" name="count_0" value="2"></td>
+      <td><button type="remove">Delete Row</button></td>
+     </tr>
+     <tr repeat="template" id="row">
+      <td><input type="text" name="name_[row]" value="" required="required"></td>
+      <td><input type="number" name="count_[row]" value="1" autofocus></td>
+      <td><button type="remove">Delete Row</button></td>
+     </tr>
+    </tbody>
+   </table>
+   <p>
+    <button type="add" template="row">Add Row</button>
+    <button type="submit">Submit</button>
+   </p>
+  </form>
+
+		
+
+		<hr>
+		<a href="http://code.google.com/p/webforms2/">Web Forms 2.0 implementation</a><br>
+		Version: 0.5.2 (2007-11-29) <a href="http://code.google.com/p/webforms2/wiki/Changelog">changelog</a>
+		<address>
+		<a href="http://weston.ruter.net/">Weston Ruter</a>
+		</address>
+	</body>
+</html>

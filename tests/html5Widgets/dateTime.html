@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta name="generator" content="HTML Tidy, see www.w3.org">
+        <meta http-equiv="Content-Type" content=
+        "text/html; utf-8">
+
+        <title>HTML5 date time examples</title>
+		
+		<!-- This CSS file is not necessary to use html5Widgets -->
+		<link type="text/css" rel="stylesheet" href="../../shared/css/useragentmanExample.css">
+		
+		
+       
+		<link type="text/css" rel="stylesheet" href="../../shared/js/jscalendar-1.0/calendar-win2k-1.css" />
+		<link type="text/css" rel="stylesheet" href="css/form.css" />
+		
+		
+		<!-- These style fixes are needed for IE6 -->
+		<!--[if lte IE 6]>
+        <link type="text/css" rel="stylesheet" href="../../shared/css/slider_ie.css" />
+		<style type="text/css">
+		output {
+			display: block;
+			position: absolute;
+			margin-left: 11em;
+			margin-top: -1.2em;
+		}
+		</style>
+		
+        <![endif]-->
+		
+		<!-- Needed for Date/Time Elements -->
+		<script type="text/javascript" src="../../shared/js/jscalendar-1.0/calendar.js"></script>
+		<script type="text/javascript" src="../../shared/js/jscalendar-1.0/lang/calendar-en.js"></script>
+		<script type="text/javascript" src="../../shared/js/jscalendar-1.0/calendar-setup.js"></script>
+
+        <!-- Needed for Validation --> 
+		<script type="text/javascript" src="../../shared/js/weston.ruter.net/webforms2/webforms2_src.js">
+		</script>
+		
+		<!-- What glues all the above together -->
+		
+		<script type="text/javascript" src="../../shared/js/modernizr.com/modernizr-1.5.min.js">
+		</script>
+		
+		
+		<script type="text/javascript" src="../../shared/js/EventHelpers.js">
+		</script>
+		
+		<script type="text/javascript" src="../../shared/js/html5Widgets.js">
+		</script>
+		
+	
+		
+
+    </head>
+
+    <body id="myExample" class="html5Widgets-debug">
+    	<div id="exampleBlurb">
+    		<p>The following shows the various HTML5 date/time widgets in action.
+			Note that at the time of this writing, Opera is the only browser
+			that renders the calendars natively - all the other browsers
+			require <code>html5Widgets</code>.
+			<a href="#">Back to the User Agent Man HTML5 Forms article</a>.</p>
+    	</div>
+		
+        <form method="get" action="result.html">
+        	<fieldset>
+				<legend>Internet Explorer 6 Retirement Timeline</legend>
+				
+				
+            <table class="formTable">
+                <tbody>
+                	
+
+                    <tr>
+                        <th>Retirement Date of IE6 in your Office: </th>
+
+                        <td><input type="datetime-local" name="DateTimeLocalTest" value=
+                        "">
+						<div class="description">This uses the 
+						<code>datetime-local</code> input type
+						</div>
+						
+						</td>
+                    </tr>
+					
+					<tr>
+                        <th>Retirement Date of IE6 in your Company:</th>
+
+                        <td><input type="datetime" name="DateTimeTest" value=
+                        "">
+						<div class="description">This uses the 
+						<code>datetime</code> input type.  Note the format is
+						slightly different that in <code>datetime-local</code>.
+						</div>
+						
+						</td>
+                    </tr>
+
+                    <tr>
+                        <th>Date You Will Quit If IE6 Remains: </th>
+
+                        <td><input type="date" name="DateTest" value=
+                        "">
+						<div class="description">This uses the 
+						<code>date</code> input type
+						</div>
+						
+						</td>
+                    </tr>
+
+                    <tr>
+                        <th>Month Your Will Give Notice: </th>
+
+                        <td><input type="month" name="MonthTest" value=
+                        "">
+						<div class="description">This uses the 
+						<code>month</code> input type
+						</div>
+						</td>
+                    </tr>
+
+                    <tr>
+                        <th>Week of Blissful Unemployment: </th>
+
+                        <td><input type="week" name="WeekTest" value=
+                        "">
+						<div class="description">This uses the 
+						<code>week</code> input type
+						</div></td>
+                    </tr>
+
+                  
+
+
+                   
+					
+					<tr>
+						<th></th>
+						<td >
+							<input type="submit" name="submit me" value="Submit" />
+						</td>
+					</tr>
+					
+                </tbody>
+            </table>
+            </fieldset>
+        </form>
+		
+		<div id="supports">
+			
+		</div>
+    </body>
+</html>
+

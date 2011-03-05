@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+
+<html dir="ltr" lang="en" xmlns="http://www.w3.org/1999/xhtml">
+
+	<head>
+		
+		<meta charset=utf-8 />
+		
+		<title>Form | 24ways.org</title>
+		
+		<link rel=stylesheet href=style.css type=text/css>
+		
+		<!-- This CSS file is not necessary to use html5Widgets -->
+		<link type="text/css" rel="stylesheet" href="../../../shared/css/useragentmanExample.css">
+		
+		<script type="text/javascript" src="../../../shared/js/EventHelpers.js">
+		</script>
+		
+		<script type="text/javascript" src="../../../shared/js/weston.ruter.net/webforms2/webforms2.js">
+		</script>
+		
+		
+		<script type="text/javascript" src="../../../shared/js/modernizr.com/modernizr-1.5.min.js">
+		</script>
+		
+		<script type="text/javascript" src="../../../shared/js/html5Widgets.js">
+		</script>
+		
+		
+			
+	</head>
+	
+	<body>
+		<div id="exampleBlurb">
+    		<p>The following is an example form taken
+			from <a href="http://24ways.org/">Inayaili de León</a>'s 
+			<a href="http://24ways.org/2009/have-a-field-day-with-html5-forms">tutorial on HTML5 forms</a>.
+			The only thing different from the original is that I have added
+			Weston Ruter's <code>webforms2</code> to implement HTML5 form validation
+			in browsers that don't natively support it.  This change required only
+			one <code>script</code> tag.
+			  
+			<a href="#">Back to the User Agent Man HTML5 Forms article</a>.</p>
+    	</div>
+		
+		<div id="thirdPartyExample">
+		<h1>Payment form</h1>
+	
+		<form id=payment>
+		
+			<fieldset>
+			
+				<legend>Your details</legend>
+		
+				<ol>
+					
+					<li>
+						<label for=name>Name</label>
+						<input id=name name=name type=text placeholder="First and last name" required autofocus>
+					</li>
+					
+					<li>
+						<label for=email>Email</label>
+						<input id=email name=email type=email placeholder="example@domain.com" required>
+					</li>
+					
+					<li>
+						<label for=phone>Phone</label>
+						<input id=phone name=phone type=tel placeholder="Eg. +447500000000" required>
+					</li>
+						
+				</ol>
+			
+			</fieldset>
+			
+			<fieldset>
+			
+				<legend>Delivery address</legend>
+				
+				<ol>
+				
+					<li>
+						<label for=address>Address</label>
+						<textarea id=address name=address rows=5 required></textarea>
+					</li>
+					
+					<li>
+						<label for=postcode>Post code</label>
+						<input id=postcode name=postcode type=text required>
+					</li>
+					
+					<li>
+						<label for=country>Country</label>
+						<input id=country name=country type=text required>
+					</li>
+				
+				</ol>
+			
+			</fieldset>
+			
+			<fieldset>
+			
+				<legend>Card details</legend>
+				
+				<ol>
+				
+					<li>
+					
+						<fieldset>
+							
+							<legend>Card type</legend>
+							
+							<ol>
+								
+								<li>
+									<input id=visa name=cardtype type=radio>
+									<label for=visa>VISA</label>
+								</li>
+								
+								<li>
+									<input id=amex name=cardtype type=radio>
+									<label for=amex>AmEx</label>
+								</li>
+								
+								<li>
+									<input id=mastercard name=cardtype type=radio>
+									<label for=mastercard>Mastercard</label>
+								</li>
+								
+							</ol>
+							
+						</fieldset>
+						
+					</li>
+					
+					<li>
+						<label for=cardnumber>Card number</label>
+						<input id=cardnumber name=cardnumber type=number required>
+					</li>
+					
+					<li>
+						<label for=secure>Security code</label>
+						<input id=secure name=secure type=number required>
+					</li>
+					
+					<li>
+						<label for=namecard>Name on card</label>
+						<input id=namecard name=namecard type=text placeholder="Exact name as on the card" required>
+					</li>
+				
+				</ol>
+				
+			</fieldset>
+			
+			<fieldset>
+			
+				<button type=submit>Buy it!</button>
+			
+			</fieldset>
+		
+		</form>
+		</div>
+	</body>
+
+</html>
