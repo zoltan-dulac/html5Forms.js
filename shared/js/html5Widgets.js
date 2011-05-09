@@ -590,6 +590,9 @@ var html5Widgets = new function(){
 		
 		function getValueFormula () {
 			var formula =  DOMHelpers.getAttributeValue(me.node, 'onforminput');
+			if (formula == null) {
+				return null;
+			}
 			formula = formula
 				.replace(valueRe, 'value')
 				.replace(varRe, 'document.forms["' + parentForm.id + '"].$1');
@@ -597,9 +600,13 @@ var html5Widgets = new function(){
 		}
 		
 		me.resolve = function () {
-			eval(valueFormula);
-			me.node.innerHTML = value;
-			me.node.value = value;
+			if (valueFormula == null) {
+				return;
+			} else {
+				eval(valueFormula);
+				me.node.innerHTML = value;
+				me.node.value = value;
+			}
 			
 		}
 		
