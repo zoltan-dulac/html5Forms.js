@@ -39,6 +39,8 @@ var html5Widgets = new function(){
 			return;
 		}
 		
+		
+		
 		isDebug = CSSHelpers.isMemberOfClass(document.body, 'html5Widgets-debug')
 		
 		// dummy link setup
@@ -63,6 +65,8 @@ var html5Widgets = new function(){
 			DebugHelpers.getProperties(Modernizr, 'Modernizr'); */
 		
 	}
+	
+	
 	
 	function supports_input_placeholder() {
 	  var i = document.createElement('input');
@@ -95,7 +99,7 @@ var html5Widgets = new function(){
 		var outputElements = document.getElementsByTagName('output');
 		for (var i=0; i<outputElements.length; i++) {
 			var outputEl = outputElements[i];
-			if (outputEl.value != undefined) {
+			if (outputEl.value != undefined && outputEl.onforminput != undefined) {
 				
 				// this browser supports the output tag .. bail
 				supportsNatively["output"] = true;
@@ -403,9 +407,9 @@ var html5Widgets = new function(){
 			
 			Calendar.setup(
 			    {
-				  eventName   :"focus",
+				  eventName   :"click",
 				  showsTime   : type.indexOf('time') >= 0,
-				  //cache		  : true,
+				  cache		  : true,
 			      inputField  : me.node.id,      // ID of the input field
 			      ifFormat    : formatString,    // the date format
 			      button      : me.node.id       // ID of the button
@@ -414,7 +418,10 @@ var html5Widgets = new function(){
 			
 			
 			
-			EventHelpers.addEvent(me.node, 'click', openCalendar);
+			
+			
+			EventHelpers.addEvent(me.node, 'click', forceCalToTop);
+			EventHelpers.addEvent(me.node, 'focus', focusEvent)
 			EventHelpers.addEvent(me.node, 'keypress', openCalendar);
 			EventHelpers.addEvent(me.node, 'blur', closeCalendar);
 			
@@ -491,9 +498,22 @@ var html5Widgets = new function(){
 			}
 		}
 		
-		function openCalendar(e) {
+		function forceCalToTop(e) {
 			var cal = window.calendar;
-			cal.element.style.zIndex = 0;
+			
+			cal.element.style.zIndex = 100;
+		}
+		
+		function focusEvent(e) {
+			var el = EventHelpers.getEventTarget(e);
+			EventHelpers.fireEvent(el, 'click')
+		}
+		
+		function openCalendar(e) {
+			
+			var cal = window.calendar;
+			
+			cal.element.style.zIndex = 100;
 			if (cal.open != undefined) {
 				cal.open();
 			} 
@@ -620,7 +640,10 @@ var html5Widgets = new function(){
 			setPlaceholderText(true);
 			EventHelpers.addEvent(me.node, 'blur', blurEvent);
 			EventHelpers.addEvent(me.node, 'focus', focusEvent);
-			EventHelpers.addEvent(me.node.form, 'submit', removePlaceholderText);
+			
+			if (me.node.form) {
+				EventHelpers.addEvent(me.node.form, 'submit', removePlaceholderText);
+			}
 			
 			if (window.$wf2) {
 				if ($wf2.callBeforeValidation != undefined) {
@@ -844,6 +867,8 @@ var html5Widgets = new function(){
 			}
 			return null;
 		}
+		
+		
 	}
 	
 	var StringHelpers = new function () {
@@ -1056,3 +1081,4 @@ var html5Widgets = new function(){
 
 
 EventHelpers.addPageLoadEvent('html5Widgets.init');
+
