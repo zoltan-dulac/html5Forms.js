@@ -109,6 +109,17 @@ var html5Widgets = new function(){
 		}
 		
 	}
+	
+	function setOutputEvents(nodeName) {
+		var formElements = document.getElementsByTagName(nodeName);
+		
+		for (var i=0; i<formElements.length; i++) {
+			var formElement = formElements[i];
+			// first - set event to resolve output tags
+			EventHelpers.addEvent(formElement, 'change', me.resolveOutputs);
+			EventHelpers.addEvent(formElement, 'keyup', me.resolveOutputs);
+		}	
+	}
 		
 	
 	function insertElements(){
@@ -134,9 +145,6 @@ var html5Widgets = new function(){
 			
 			var formElement = formElements[i];
 			
-			// first - set event to resolve output tags
-			EventHelpers.addEvent(formElement, 'change', me.resolveOutputs);
-			EventHelpers.addEvent(formElement, 'keypress', me.resolveOutputs);
 			
 			//var elType = getAttributeValue(formElement, 'type');
 			var elType = DOMHelpers.getAttributeValue(formElement, 'type');
@@ -174,6 +182,11 @@ var html5Widgets = new function(){
 					break;
 			}
 			
+		}
+		
+		var formElementTypes = ["input", "select", "te	xtarea"];
+		for (var i=0; i<formElementTypes.length; i++) {
+			setOutputEvents(formElementTypes[i]);
 		}
 		
 		if (window.fdSliderController) {

@@ -4,10 +4,12 @@
  * This javascript library contains helper routines to assist with event 
  * handling consinstently among browsers
  *
- * EventHelpers.js v.1.3 available at http://www.useragentman.com/
+ * EventHelpers.js v.1.4 available at http://www.useragentman.com/
  *
  * released under the MIT License:
  *   http://www.opensource.org/licenses/mit-license.php
+ *   
+ * Chagelog: 1.4: fix fireEvent to work correctly for IE9.
  *
  *******************************************************************************/
 var EventHelpers = new function(){
@@ -22,12 +24,13 @@ var EventHelpers = new function(){
 			return;	
 		}
 		
-		if (document.createEventObject){
-	        // dispatch for IE
-	        globalEvent = document.createEventObject();
-	    } else 	if (document.createEvent) {
+		/* This is for fireEvent */
+		if (document.createEvent) {
 			globalEvent = document.createEvent("HTMLEvents");
-		} 
+		} else if (document.createEventObject){
+	        // dispatch for IE8 and lower.
+	        globalEvent = document.createEventObject();
+	    } 	
 		
 		me.docIsLoaded = true;
 	}
@@ -415,7 +418,8 @@ var EventHelpers = new function(){
 	/* 
 	 * Fires an event manually.
 	 * @author Scott Andrew - http://www.scottandrew.com/weblog/articles/cbs-events
-	 * @author John Resig - http://ejohn.org/projects/flexible-javascript-events/	 * @param {Object} obj - a javascript object.
+	 * @author John Resig - http://ejohn.org/projects/flexible-javascript-events/	 
+	 * @param {Object} obj - a javascript object.
 	 * @param {String} evType - an event attached to the object.
 	 * @param {Function} fn - the function that is called when the event fires.
 	 * 
@@ -426,24 +430,15 @@ var EventHelpers = new function(){
 			return;
 		}
 		
-	    if (document.createEventObject){
-	        /* 
-			var stack = DebugHelpers.getStackTrace();
-			var s = stack.toString();
-			jslog.debug(s);
-			if (s.indexOf('fireEvent') >= 0) {
-				return;
-			}
-			*/
-			return element.fireEvent('on' + event, globalEvent)
-			jslog.debug('ss');
-			
-	    }
-	    else{
-	        // dispatch for firefox + others
+		if (element.dispatchEvent) {
+	        // dispatch for firefox + ie9 + others
 	        globalEvent.initEvent(event, true, true); // event type,bubbling,cancelable
 	        return !element.dispatchEvent(globalEvent);
-	    }
+	    } else if (document.createEventObject){
+			return element.fireEvent('on' + event, globalEvent)	
+		} else {
+			return false;
+		}
 }
     
     /* EventHelpers.init () */
