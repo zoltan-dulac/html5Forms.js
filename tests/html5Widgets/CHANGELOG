@@ -1,3 +1,5 @@
 Changelog for this package:
 version 1.0    - initial release (July 27, 2010) 
 version 1.0b   - updated to deal with WebKit's half-implemented WebForms 2 Implementation (Sept 10, 2010)
+version 1.1    - implemented oninput method for form elements for unsupported browsers
+               - fix IE9 to ensure backspace and delete keys fire an oninput event. (May 12, 2011)

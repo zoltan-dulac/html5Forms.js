@@ -439,7 +439,25 @@ var EventHelpers = new function(){
 		} else {
 			return false;
 		}
-}
+	}
+	
+	/*
+	 * Detects whether the event "eventName" is supported on a tag with name 
+	 * "nodeName".  Based on code from 
+	 * http://perfectionkills.com/detecting-event-support-without-browser-sniffing/
+	 */
+	me.isSupported = function (eventName, nodeName) {
+      var el = document.createElement(nodeName);
+      eventName = 'on' + eventName;
+      var isSupported = (eventName in el);
+      if (!isSupported) {
+        el.setAttribute(eventName, 'return;');
+        isSupported = typeof el[eventName] == 'function';
+      }
+      el = null;
+      return isSupported;
+    }
+    
     
     /* EventHelpers.init () */
     function init(){

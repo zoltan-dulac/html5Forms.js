@@ -2,7 +2,6 @@
 <html lang="en">
 	<head>
 		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-		<meta http-equiv="X-UA-Compatible" content="IE=EmulateIE8" /> 
 		
 		<link type="text/css" rel="stylesheet" href="css/form.css" />
 		
@@ -10,7 +9,7 @@
 		<title>HTML5 range input type</title>
 		
 		<!-- Needed for Range Element -->
-		 <link type="text/css" rel="stylesheet" href="../../shared/css/slider.css">
+		<link type="text/css" rel="stylesheet" href="../../shared/css/slider.css">
 		<!--[if lte IE 6]>
         <link type="text/css" rel="stylesheet" href="../../shared/css/slider_ie.css" />
         <![endif]-->
@@ -30,7 +29,7 @@
 		</script>
 		<script type="text/javascript" src="../../shared/js/EventHelpers.js">
 		</script>
-		<script type="text/javascript" src="../../shared/js/html5Widgets.js">
+		<script type="text/javascript" src="../../shared/js/html5Widgets.js" >
 		</script>
 		
 	</head>
@@ -39,14 +38,15 @@
 		<p>
 				This is an example of a HTML5 form using the <code>range</code> and <code>output</code> input types.
 				As the user slides the <code>range</code> widget, the number next to it will change.  This is
-				becasue the <code>output</code> tags's <code>onforminput</code> is set to <code>"this.value = rangeEl.value"</code>.
+				becasue the <code>form</code> tags's <code>oninput</code> is set to <code>"this.value = rangeEl.value"</code>.
 				
 					<a href="http://www.useragentman.com/blog/?p=1110">Back to User Agent Man HTML5 Forms article </a>
 			</p>
 		</div>
 		
 		
-		<form>
+		<form oninput="document.getElementById('rangeOutput').innerHTML = 
+			'$' + document.getElementById('rangeEl').value">
 			<fieldset>
 				<legend>Personal Information</legend>
 		
@@ -76,9 +76,9 @@
                         <th>Donation Amount:</th>
 
                         <td>
-                        <output class="withRange" onforminput="this.value = '$' + rangeEl.value">-</output>	
-						<input type="range" class="range" name="rangeEl" value=""
-                        min="0" max="150" >
+                        <output class="withRange" id="rangeOutput">-</output>	
+						<input type="range" class="range" id="rangeEl" name="rangeEl" value=""
+                        min="10" max="150" >
 						
 						<div class="description">This is a <code>range</code>
 						element, with a <code>min</code> of <code>10</code> 

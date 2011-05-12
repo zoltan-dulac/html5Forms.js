@@ -4,9 +4,14 @@
  * This javascript library contains helper routines to assist with event 
  * handling consinstently among browsers
  *
- * html5Widgets.js v.1.0 by Zoltan Hawryluk
+ * html5Widgets.js v.1.1 by Zoltan Hawryluk
  * latest version and documentation available at http://www.useragentman.com/
  *
+ * Changelog:
+ *  version 1.0: initial release
+ *  version 1.1: implemented oninput method for form elements for unsupported browsers
+ *               fix IE9 to ensure backspace and delete keys fire an oninput event.
+ *  
  * released under the MIT License:
  *   http://www.opensource.org/licenses/mit-license.php
  *
@@ -18,10 +23,9 @@ var html5Widgets = new function(){
 	
 	var delayEventTimeout = null;
 	
-	
-	
 	me.inputNodes = new Array();
 	me.outputNodes = new Array();
+	me.formElements = null;
 	me.placeholderNodes = new Array();
 	me.dummyLink = document.createElement('input');
 	var quoteRe = /\"/g;
@@ -30,8 +34,19 @@ var html5Widgets = new function(){
 	var supportsNatively = new Object();
 	
 	var isBadChrome = navigator.userAgent.indexOf('Chrome');
-	
+	var valueRe = /this\.value/g;
+	var varRe = /([a-zA-Z][a-zA-Z0-9]*\.value)/g;
 	var isDebug;
+	
+	var isIE9 = false;
+	
+	/*@cc_on
+	  @if (@_jscript_version == 9)
+	    isIE9 = true;
+	  @end
+	@*/
+	
+	
 	
 	me.init = function(){
 		
@@ -39,7 +54,7 @@ var html5Widgets = new function(){
 			return;
 		}
 		
-		
+		supportsNatively['oninput'] = EventHelpers.isSupported('input', 'form');
 		
 		isDebug = CSSHelpers.isMemberOfClass(document.body, 'html5Widgets-debug')
 		
@@ -108,6 +123,8 @@ var html5Widgets = new function(){
 			me.outputNodes.push(new OutputElement(outputEl))
 		}
 		
+		me.formElements = document.getElementsByTagName('form');
+		
 	}
 	
 	function setOutputEvents(nodeName) {
@@ -118,6 +135,7 @@ var html5Widgets = new function(){
 			// first - set event to resolve output tags
 			EventHelpers.addEvent(formElement, 'change', me.resolveOutputs);
 			EventHelpers.addEvent(formElement, 'keyup', me.resolveOutputs);
+			EventHelpers.addEvent(formElement, 'cut', me.resolveOutputs);
 		}	
 	}
 		
@@ -131,7 +149,10 @@ var html5Widgets = new function(){
 			fdSliderController.removeOnLoadEvent();
 		}
 		
-		
+		var formElementTypes = ["input", "select", "textarea"];
+		for (var i=0; i<formElementTypes.length; i++) {
+			setOutputEvents(formElementTypes[i]);
+		}
 		
 		var formElements = document.getElementsByTagName('input');
 		
@@ -184,10 +205,7 @@ var html5Widgets = new function(){
 			
 		}
 		
-		var formElementTypes = ["input", "select", "te	xtarea"];
-		for (var i=0; i<formElementTypes.length; i++) {
-			setOutputEvents(formElementTypes[i]);
-		}
+		
 		
 		if (window.fdSliderController) {
 			fdSliderController.redrawAll();
@@ -226,11 +244,45 @@ var html5Widgets = new function(){
 		EventHelpers.fireEvent(el, ev);
 	}
 	
-	me.resolveOutputs = function () {
+	me.resolveOutputs = function (e) {
+		
+		// This resolves the onforminput events on the output nodes
 		for (var i=0; i<me.outputNodes.length; i++) {
 			var outputNode = me.outputNodes[i];
 			outputNode.resolve();
 		}
+		
+		// This resolves the oninput events on the form nodes
+		if (!supportsNatively['oninput']) {
+			for (var i=0; i<me.formElements.length; i++) {
+				var formNode = me.formElements[i];
+				var oninput = DOMHelpers.getAttributeValue(formNode, 'oninput');
+				if (oninput) {
+					eval(me.getValueFormula(oninput, formNode));
+				}
+			}
+		} else if (isIE9 && e) {
+			// must deal with buggy implementation - delete and backspace don't fire
+			// the oninput event
+			var input = EventHelpers.getEventTarget(e);
+			switch (e.type) {
+				
+				case "keyup":
+					var key = EventHelpers.getKey(e);
+					
+					switch (key) {
+						case 8:
+						case 46:
+						case 88:
+							EventHelpers.fireEvent(input.form, 'input');
+					}
+					break;
+				case "cut":
+					delayedFireEvent(input.form, 'input');
+					break;
+			}
+			
+		} 
 	}
 	
 	me.hideInput = function (node) {
@@ -239,6 +291,17 @@ var html5Widgets = new function(){
 		node.style.top = '-1000px';
 		node.style.left = '-1000px';
 		node.style.visibility = 'hidden'
+	}
+	
+	me.getValueFormula = function(expr, parentForm) {
+		var formula = expr
+		if (formula == null) {
+			return null;
+		}
+		formula = formula
+			.replace(valueRe, 'value')
+			.replace(varRe, 'document.forms["' + parentForm.id + '"].$1');
+		return formula;
 	}
 	
 	
@@ -257,12 +320,13 @@ var html5Widgets = new function(){
 	
 	function RangeElement(node){
 		var me = this;
+		var parentForm;
 		
 		me.node = node;
 		me.sliderNode = null;
 		
 		function init (){
-			
+			parentForm = DOMHelpers.getAncestorByTagName(node, 'form');
 			var min = parseFloat(DOMHelpers.getAttributeValue(me.node, 'min'));
 			var max = parseFloat(DOMHelpers.getAttributeValue(me.node, 'max'));
 			
@@ -349,9 +413,13 @@ var html5Widgets = new function(){
 			EventHelpers.addEvent(me.node, 'change', changeOriginalNodeEvent);
 		}
 		
-		me.changeEvent = function (e){		
-			delayedFireEvent(me.node, 'change');
+		me.changeEvent = function (e){
+			var oninput = DOMHelpers.getAttributeValue(parentForm, 'oninput');
 			
+			if (oninput) {
+				eval(html5Widgets.getValueFormula(oninput, parentForm));
+			}
+			delayedFireEvent(me.node, 'change');
 		}
 		
 		function changeOriginalNodeEvent(e) {
@@ -589,8 +657,7 @@ var html5Widgets = new function(){
 		var valueFormula;
 		var parentForm;
 	
-		var valueRe = /this\.value/g;
-		var varRe = /([a-zA-Z][a-zA-Z0-9]*\.value)/g;
+		
 		
 		function init () {
 			parentForm = DOMHelpers.getAncestorByTagName(node, 'form');
@@ -598,19 +665,10 @@ var html5Widgets = new function(){
 				parentForm.id = getNextDummyID();
 			}
 			
-			valueFormula = getValueFormula();
+			valueFormula = html5Widgets.getValueFormula(DOMHelpers.getAttributeValue(me.node, 'onforminput'), parentForm);
 		}
 		
-		function getValueFormula () {
-			var formula =  DOMHelpers.getAttributeValue(me.node, 'onforminput');
-			if (formula == null) {
-				return null;
-			}
-			formula = formula
-				.replace(valueRe, 'value')
-				.replace(varRe, 'document.forms["' + parentForm.id + '"].$1');
-			return formula;
-		}
+		
 		
 		me.resolve = function () {
 			if (valueFormula == null) {
