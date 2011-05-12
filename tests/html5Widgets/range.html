@@ -38,7 +38,8 @@
 		<p>
 				This is an example of a HTML5 form using the <code>range</code> and <code>output</code> input types.
 				As the user slides the <code>range</code> widget, the number next to it will change.  This is
-				becasue the <code>form</code> tags's <code>oninput</code> is set to <code>"this.value = rangeEl.value"</code>.
+				becasue the <code>form</code> tag's <code>oninput</code> is set to <code>"document.getElementById('rangeOutput').innerHTML = 
+			'$' + document.getElementById('rangeEl').value"</code>.
 				
 					<a href="http://www.useragentman.com/blog/?p=1110">Back to User Agent Man HTML5 Forms article </a>
 			</p>
