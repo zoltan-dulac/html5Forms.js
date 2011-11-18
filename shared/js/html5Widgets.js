@@ -90,13 +90,15 @@ var html5Widgets = new function(){
 	
 	function setPlaceholders() {
 		
-		var nodes = document.getElementsByTagName('input')
+		var nodes = [document.getElementsByTagName('input'), document.getElementsByTagName('textarea')];
 		
 		for (var i=0; i<nodes.length; i++) {
-			var node = nodes[i];
-			
-			if (DOMHelpers.getAttributeValue(node, 'placeholder')) {
-				me.placeholderNodes.push(new PlaceholderInput(node));
+			for (var j=0; j<nodes[i].length; j++) {
+				var node = nodes[i][j];
+				
+				if (DOMHelpers.getAttributeValue(node, 'placeholder')) {
+					me.placeholderNodes.push(new PlaceholderInput(node));
+				}
 			}
 		}
 	}
