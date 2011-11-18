@@ -5,7 +5,7 @@ implementation - for example, at the time of this writing, it will implement
 the datetime calendar widget in all browser except Opera, which supports it
 natively.
 
-More information on how this works is available at:
+More information about how this works is available at:
 
 http://www.useragentman.com/blog/2010/07/27/cross-browser-html5-forms-using-modernizr-webforms2-and-html5widgets/
 
