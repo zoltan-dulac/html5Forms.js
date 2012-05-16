@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<config>
+	<autocomplete>
+		<urls>
+			<city>/bin/getList.cgi?inputValue=@inputValue&amp;inputID=cities</city>
+			<city2>/bin/getList.cgi?inputValue=@inputValue&amp;inputID=cities</city2>
+		</urls>
+		<templates>
+			<list><![CDATA[
+				<select size="10">@listItemsHTML</select>
+			]]></list>
+			<listItem><![CDATA[
+				<option value="@listItem">@listItem</option>
+			]]></listItem>
+			<pleaseWait><![CDATA[
+				<div id="autocomplete-pleaseWait">
+				<strong><img src="../../shared/images/icons/spinner.gif" />Please Wait</strong>
+				</div>
+			]]></pleaseWait>
+		</templates>
+		<selectors>
+			<listItem>option</listItem>
+			<list>select</list>
+		</selectors>
+		<values>
+			<minLength>1</minLength>
+		</values>
+	</autocomplete>
+</config> 

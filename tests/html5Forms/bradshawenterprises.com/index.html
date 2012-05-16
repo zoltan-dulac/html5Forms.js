@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8" />
+		<meta http-equiv="X-UA-Compatible" content="chrome=1" /><!-- Optimistically rendering in Chrome Frame in IE. -->
+		<style>
+		
+		*:focus{
+			outline:none; /* Prevents blue border in Webkit */
+		}
+
+		body {
+			font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; /*  */
+		}
+		
+		#top_bit {
+			width:760px;
+			margin: 0 auto;
+		}
+		
+		form {
+			width:300px;
+			margin: 20px auto;
+		}
+
+		p {
+			line-height: 1.6;
+		}
+
+		input, textarea {
+			font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+			background-color:#fff;
+			border:1px solid #ccc;
+			font-size:20px;
+			width:300px;
+			min-height:30px;
+			display:block;	
+			margin-bottom:16px;
+			margin-top:8px;
+			
+			-webkit-border-radius:5px;
+			-moz-border-radius:5px;
+			border-radius:5px;
+			
+			-webkit-transition: all 0.5s ease-in-out;
+			-moz-transition: all 0.5s ease-in-out;
+			-ms-transition: all 0.5s ease-in-out;
+			-o-transition: all 0.5s ease-in-out;
+			transition: all 0.5s ease-in-out;
+		}
+		
+		textarea {
+				min-height:200px;
+				overflow: hidden;
+		}
+
+		input:focus, textarea:focus {
+			-webkit-box-shadow:0 0 25px #ccc;
+			-moz-box-shadow:0 0 25px #ccc;
+			box-shadow:0 0 25px #ccc;
+			
+			-webkit-transform: scale(1.05);
+			-moz-transform: scale(1.05);
+			-ms-transform: scale(1.05);
+			-o-transform: scale(1.05);
+			transform: scale(1.05);
+		}
+		
+		input[type="number"]:focus {
+			-o-transform: none !important;
+		}
+		
+		/* The interesting bit */
+		
+		input:not(:focus), textarea:not(:focus) {
+			opacity:0.5;
+		}
+		
+		input:required, textarea:required{
+			background:url("asterisk_orange.png") no-repeat right 7px;						
+		}
+		
+		[required] {
+			background:url("asterisk_orange.png") no-repeat right 7px;		
+		}
+
+		input:valid, textarea:valid {
+			
+			/* Make this important if you want IE10 to work right. */
+			background:url("tick.png") no-repeat right 5px !important;			
+		}
+		
+		.wf2_valid {
+			background:url("tick.png") no-repeat right 5px;			
+		}		
+
+		input:focus:invalid, textarea:focus:invalid {
+			background:url("cancel.png") no-repeat right 7px;						
+		}
+		
+		input.wf2_invalid:focus {
+			background:url("cancel.png") no-repeat right 7px;						
+		}
+
+		input[type=submit] {
+			padding:10px;
+			background:none;
+			opacity:1.0;
+		}
+		
+		</style>
+		
+			<!-- What glues all the above together -->
+		
+		<script type="text/javascript" src="../../../shared/js/modernizr.com/Modernizr-2.5.3.forms.js">
+		</script>
+		
+		<!-- Needed for Validation --> 
+		<script type="text/javascript" src="../../../shared/js/html5Forms.js" data-webforms2-support="validation,number,range">
+		</script>
+		 
+	
+		
+		
+	
+		
+		<!--[if (gt IE 9) ]> <script>alert('x')</script><![endif]-->
+		
+	</head>
+	<body>
+	<div id="top_bit">
+
+		<h1>HTML5 Form Demo</h1>
+		<p>If you don't see asterisks or ticks then your browser doesn't support the HTML5 bits we are looking at. Try <a href="http://www.chromium.org/getting-involved/dev-channel">Chrome Dev builds</a>, <a href="http://nightly.webkit.org/">Webkit Nightlies</a> or <a href="http://www.opera.com/browser/">Opera</a>.</p>
+		<p>The emphasis here has been to showcase the new HTML5 forms module as is supported Webkit.</p>
+				<p><a href="http://www.bradshawenterprises.com/blog/2010/fancy-forms-html5-css3-js/">Article about this page.</a></p>
+
+	</div>	
+	<form action="formdemo.php" method="post"> 
+		<label for="name">Name:</label> 
+		<input type="text" name="name" required placeholder="Name" />
+		
+		<label for="email">Email:</label> 
+		<input type="email" name="email" required placeholder="email@example.com" />
+
+		<label for="website">Website:</label> 
+		<input type="url" name="website" required placeholder="http://www.example.com" />
+
+		<label for="number">Number:</label> 
+		<input type="number" name="number" min="0" max="20" step="3" required placeholder="Even num < 10">
+
+		<label for="range">Range:</label> 
+		<input type="range" name="range" min="0" max="10" step="2" />
+
+		<label for="message">Message:</label> 
+		<textarea name="message" required></textarea>
+	
+		<input type="submit" value="Send Message" />
+			</form>
+	
+	
+	
+	
+	</body>
+</html>

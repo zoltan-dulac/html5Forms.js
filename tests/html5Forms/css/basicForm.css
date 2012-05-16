@@ -1,0 +1,48 @@
+
+body {
+	font-family: "Arial", sans-serif;
+}
+
+table.formTable {
+	
+	width: 40em;
+	margin: 0 auto;
+	overflow: none;
+}
+
+table.formTable input, table.formTable .description {
+	width: 15em;	
+}
+
+table.formTable input.range {
+	
+	width: 11em !important;
+}
+
+output.withRange {
+	display: block;
+	float: left;
+	margin-right: 0em;
+	width: 3em;
+	
+}
+
+table.formTable th, table.formTable td {
+	padding: 0.4em 0.1em;
+	vertical-align: top;	
+}
+
+table.formTable th {
+	text-align: right;
+	width: 20em;
+}
+
+table.formTable .description {
+	color: #999999;
+	font-size: 0.8em;
+	text-align: justify;
+}
+
+table.formTable input.check {
+	width: auto;
+}

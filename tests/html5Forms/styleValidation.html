@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta name="generator" content="HTML Tidy, see www.w3.org">
+        <meta http-equiv="Content-Type" content=
+        "text/html; utf-8">
+
+        <title>html5Widgets Test Form</title>
+		
+		<!-- This CSS file is not necessary to use html5Widgets -->
+		<link type="text/css" rel="stylesheet" href="../../shared/css/useragentmanExample.css">
+		
+		
+       
+		<link type="text/css" rel="stylesheet" href="css/form.css" />
+		
+		
+		
+		
+		
+
+        <!-- Needed for Validation --> 
+		<script type="text/javascript" src="../../shared/js/weston.ruter.net/webforms2/webforms2_src.js">
+		</script>
+		
+		<!-- What glues all the above together -->
+		
+		<script type="text/javascript" src="../../shared/js/modernizr.com/Modernizr-2.5.3.forms.js">
+		</script>
+
+		<script type="text/javascript" src="../../shared/js/html5.js">
+		</script>
+		
+		
+		<script type="text/javascript" src="../../shared/js/EventHelpers.js">
+		</script>
+		
+		<script type="text/javascript" src="../../shared/js/html5Widgets.js">
+		</script>
+		
+	
+		
+
+    </head>
+
+    <body id="myExample" class="html5Widgets-debug">
+    	<div id="exampleBlurb">
+    		<p>The following shows a variety of HTML5 form elements, including 
+			<code>color</code>.  The form uses <code>HTML5Widgets</code> and
+			Weston Ruter's  <code>webforms2</code> to add HTML5 Forms support to 
+			browsers that don't currently support it.  Browsers that partially
+			support the specification will use native functionality where applicable.
+			<a href="http://www.useragentman.com/blog/?p=1110">Back to User Agent Man HTML5 Forms article </a></p>
+
+    	</div>
+		
+        <form method="get" action="http://www.useragentman.com/testForm.php" >
+        	
+			<fieldset>
+				<legend>HTML5Widgets Test Form</legend>
+				<p>Form fields labelled <img src="images/asterix.gif" alt="*"/> are mandatory</p>
+            <table class="formTable">
+                <tbody>
+
+                	
+					
+					<tr>
+						<th>Test validity</th>
+						<td><input type="text" name="safasfas" value="" pattern="[0-9]*" required="required" placeholder="Required Field" />
+						<div class="description">To test the <strong>required</strong> and <strong>pattern</strong>
+						attributes, this field only accepts numbers.</div>
+
+						
+						</td>
+					</tr>
+					
+					<tr>
+						<th>Terms and Conditions:</th>
+						<td>
+							I promise to give my first born to The Evil Corporation
+							in return for a free iPad.
+							<br />
+							<br />
+							<label><input type="checkbox" class="check" name="iAgree" value="yesDammitYes" required="required"  />I submit to my new evil overlord</label>
+
+							
+						
+						</td>
+						
+					</tr>
+					<tr>
+						<th></th>
+						<td >
+							<input type="submit" name="submit me" value="Submit" />
+						</td>
+					</tr>
+					
+                </tbody>
+
+            </table>
+            </fieldset>
+        </form>
+		
+		<div id="supports">
+			
+		</div>
+    </body>
+</html>
+

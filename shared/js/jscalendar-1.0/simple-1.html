@@ -56,7 +56,7 @@ fields.  Basically, when some field is filled with a date, the other
 is updated so that the difference between them remains one week.  The
 property useful here is "onUpdate".</p>
 
-<form action="#" method="get">
+<form action="http://www.useragentman.com/testForm.php" method="get">
 <input type="text" name="date" id="f_date_a" />
 <input type="text" name="date" id="f_calcdate" />
 </form>
@@ -102,7 +102,7 @@ is explicitely set to false).  Also demonstrates the "step" parameter
 introduced in 0.9.6 (show all years in drop-down boxes, instead of every
 other year as default).</p>
 
-<form action="#" method="get">
+<form action="http://www.useragentman.com/testForm.php" method="get">
 <input type="text" name="date" id="f_date_b" /><button type="reset" id="f_trigger_b">...</button>
 </form>
 
@@ -126,7 +126,7 @@ function doesn't care if the trigger is a button, image, or anything else.
 Also in this example we setup a different alignment, just to show how it's
 done.  The input field is read-only (that is set from HTML).</p>
 
-<form action="#" method="get">
+<form action="http://www.useragentman.com/testForm.php" method="get">
 <table cellspacing="0" cellpadding="0" style="border-collapse: collapse"><tr>
  <td><input type="text" name="date" id="f_date_c" readonly="1" /></td>
  <td><img src="img.gif" id="f_trigger_c" style="cursor: pointer; border: 1px solid red;" title="Date selector"
@@ -157,7 +157,7 @@ The display area can have it's own format.  This is useful if, for instance,
 we need to store one format in the database (thus pass it in the input
 field) but we wanna show a friendlier format to the end-user.</p>
 
-<form action="#" method="get" style="visibility: hidden">
+<form action="http://www.useragentman.com/testForm.php" method="get" style="visibility: hidden">
 <input type="hidden" name="date" id="f_date_d" />
 </form>
 
@@ -186,7 +186,7 @@ field) but we wanna show a friendlier format to the end-user.</p>
 <p><b>Hidden field, display area, trigger image.</b> Very similar to the
 previous example.  The difference is that we also have a trigger image.</p>
 
-<form action="#" method="get" style="visibility: hidden">
+<form action="http://www.useragentman.com/testForm.php" method="get" style="visibility: hidden">
 <input type="hidden" name="date" id="f_date_e" />
 </form>
 
@@ -215,7 +215,7 @@ onmouseout="this.style.background=''" />.</p>
 but we now disable some dates (all weekends, that is, Saturdays and
 Sundays).</p>
 
-<form action="#" method="get" style="visibility: hidden">
+<form action="http://www.useragentman.com/testForm.php" method="get" style="visibility: hidden">
 <input type="hidden" name="date" id="f_date_f" />
 </form>
 

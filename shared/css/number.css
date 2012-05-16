@@ -1,0 +1,35 @@
+
+.html5-numberControls {
+	display: block;
+	vertical-align:top;
+	position: absolute;
+	top: 0;
+	right: 0em;
+	height: 1.5em;
+	border: solid 1px #666666;
+	border-radius: 5px;
+	width: 0.8em;
+	color: #666666;
+	margin-top: 0.3em;
+}
+
+.html5-numberWrapper {
+	position: absolute;
+	height: 1em;
+}
+
+ .html5-numberControls a{
+	margin: 0 0 0 0.2em;
+	padding:0;
+	border:0;
+	background-color:transparent;
+	width: 0.9em;
+	cursor:pointer;
+	position:absolute;
+	
+	font-size: 0.6em;
+}
+
+.html5-numberControls .upbutton{top:0px;}
+
+.html5-numberControls .dnbutton{bottom: 0px;}

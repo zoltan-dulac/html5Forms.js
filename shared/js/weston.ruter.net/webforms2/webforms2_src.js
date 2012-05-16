@@ -1,10 +1,11 @@
 /*
  * Web Forms 2.0 Cross-browser Implementation <http://code.google.com/p/webforms2/>
- * Version: 0.6.1 (2010-09-10)
+ * Version: 0.7 (2011-03-01)
  * Copyright: 2007, Weston Ruter <http://weston.ruter.net/> 
  *    with additions by Zoltan Hawryluk <http://www.useragentman.com>
- * License: GNU General Public License, Free Software Foundation
- *          <http://creativecommons.org/licenses/GPL/2.0/>
+ * Licenses (as of Feb 6, 2011)
+ * - MIT License (http://www.opensource.org/licenses/mit-license.php)
+ * - GPL (http://creativecommons.org/licenses/GPL/2.0/)
  * 
  * The comments contained in this code are largely quotations from the 
  * WebForms 2.0 specification: <http://whatwg.org/specs/web-forms/current-work/>
@@ -15,6 +16,10 @@
  * version 0.5.4  - initial release by Weston Ruter
  * version 0.6    - refactored for use with HTML5Widgets by Zoltan Hawryluk (July 27th, 2010)
  * version 0.6.1  - updated to deal with WebKit's half-implemented WebForms 2 Implementation (Sept 10, 2010)
+ * version 0.7    - bug fixes with nested repetition models by Zoltan Hawryluk.
+ * version 0.7.1  - updated to dual MIT/GPL 2.0 license.
+ * version 1.0    - Updated to mimic CSS validation pseudo-classes, support for newer browsers
+ *                  native support (IE10, Firefox 4, Webkit, Opera 11.11)
  */
 
 if(!window.$wf2){
@@ -32,10 +37,14 @@ $wf2 = {
 	hasElementExtensions : (window.HTMLElement && HTMLElement.prototype),
 	hasGettersAndSetters : ($wf2.__defineGetter__ && $wf2.__defineSetter__),
 	
-	hasBadImplementation: navigator.userAgent.indexOf('WebKit'),
+	hasBadImplementation: navigator.userAgent.indexOf('WebKit') > 0,
+	
+	// WebKit less than 534 doesn't show validation UI - we need to check for this (from http://stackoverflow.com/questions/6030522/html5-form-validation-modernizr-safari)
+	hasNativeBubbles: navigator.userAgent.indexOf('WebKit') < 0 || parseInt(navigator.userAgent.match(/AppleWebKit\/([^ ]*)/)[1].split('.')[0])  > 534,
 	
 	callBeforeValidation : new Array(),
 	callAfterValidation : new Array(),
+	callAfterDOMContentLoaded: new Array(),
 	
 	
 	onDOMContentLoaded : function(){
@@ -99,15 +108,16 @@ $wf2 = {
 		//   first, looking for templates so that their initial repetition blocks can be created. ... UAs should not 
 		//   specifically wait for images and style sheets to be loaded before creating initial repetition blocks 
 		//   as described above.
-		$wf2.initRepetitionBlocks();
-		$wf2.initRepetitionTemplates();
-		$wf2.initRepetitionButtons('add');
-		$wf2.initRepetitionButtons('remove');
-		$wf2.initRepetitionButtons('move-up');
-		$wf2.initRepetitionButtons('move-down');
-		$wf2.updateAddButtons();
-		$wf2.updateMoveButtons();
-	
+		if (window.$wf2Rep) {
+			$wf2.initRepetitionBlocks();
+			$wf2.initRepetitionTemplates();
+			$wf2.initRepetitionButtons('add');
+			$wf2.initRepetitionButtons('remove');
+			$wf2.initRepetitionButtons('move-up');
+			$wf2.initRepetitionButtons('move-down');
+			$wf2.updateAddButtons();
+			$wf2.updateMoveButtons();
+		}
 		// Initialize Non-Repetition Behaviors ****************************************
 		if(document.addEventListener){
 			document.addEventListener('mousedown', $wf2.clearInvalidIndicators, false);
@@ -119,7 +129,15 @@ $wf2 = {
 		}
 		
 		$wf2.initNonRepetitionFunctionality();
+		
+		for (var i=0; i<$wf2.callAfterDOMContentLoaded.length; i++) {
+			$wf2.callAfterDOMContentLoaded[i]();
+		}
 	},
+
+	
+	
+
 
 
 	/*##############################################################################################
@@ -432,992 +450,7 @@ $wf2 = {
 		}
 	},
 
-	/*##############################################################################################
-	 # Section: Repetition Model
-	 ##############################################################################################*/
 
-	//## REPETITION TEMPLATE #############################################################
-	repetitionTemplates:[],
-	constructRepetitionTemplate : function(){
-		if(this.wf2Initialized)
-			return;
-		this.wf2Initialized = true; //SAFARI needs this to be here for some reason...
-		
-		this.style.display = 'none'; //This is also specified via a stylesheet
-		this.repetitionType = RepetitionElement.REPETITION_TEMPLATE;
-		if(!this.repetitionIndex)
-			this.repetitionIndex = 0;
-		this.repetitionTemplate = null; //IMPLEMENT GETTER
-		if(!this.repetitionBlocks)
-			this.repetitionBlocks = []; //IMPLEMENT GETTER
-		var _attr;
-		this.repeatStart = /^\d+$/.test(_attr = this.getAttribute('repeat-start')) ? parseInt(_attr) : 1;
-		this.repeatMin   = /^\d+$/.test(_attr = this.getAttribute('repeat-min'))   ? parseInt(_attr) : 0;
-		this.repeatMax   = /^\d+$/.test(_attr = this.getAttribute('repeat-max'))   ? parseInt(_attr) : Number.MAX_VALUE; //Infinity;
-		
-		if(!this.addRepetitionBlock) this.addRepetitionBlock = function(refNode, index){
-			return $wf2.addRepetitionBlock.apply(this, [refNode, index]); //wrapper to save memory?
-		};
-		if(!this.addRepetitionBlockByIndex)
-			this.addRepetitionBlockByIndex = this.addRepetitionBlock/*ByIndex*/; //one method implements both algorithms
-		
-		//Any form controls inside a repetition template are associated with their forms' templateElements 
-		//   DOM attributes, and are not present in the forms' elements DOM attributes.
-		
-		//On the HTMLFormElement, the templateElements attribute contains the list of form controls associated 
-		//   with this form that form part of repetition templates. It is defined in more detail in the section 
-		//   on the repetition model. (Image controls are part of this array, when appropriate.) The controls 
-		//   in the elements and templateElements lists must be in document order. 
-		var frm = this;
-		while(frm = frm.parentNode){
-			if(frm.nodeName.toLowerCase() == 'form')
-				break;
-		}
-		
-		var _templateElements;
-		//IMAGE???, fieldset not included
-		if(frm && (_templateElements = $wf2.getElementsByTagNames.apply(this, ['button','input','select','textarea','isindex'])).length){
-			//INCORRECT IMPLEMENTATION: this should append the new elements onto the frm.templateElements array and then sort them in document order?
-			//each time that a nesting repetition block is instantiated, the form's templateElemenents property becomes invalid
-			
-			//frm.templateElements = _templateElements;
-
-			//Controls in the templateElements attribute cannot be successful; controls inside repetition templates can never be submitted.
-			//   Therefore disable all elements in the template; however, due to the issue below, the original disabled state must be stored in the field's class attribute as "disabled"
-			//   this storing of the original disabled state will enable the elements in cloned blocks to be disabled as originally coded in the template
-			//ISSUE: inputs retain disabled (but not defaultDisabled) attribue after returning to page from back button or reload
-			//   see http://weblogs.mozillazine.org/gerv/archives/2006/10/firefox_reload_behaviour.html
-			// As a workaround... this implementation requires that authors, in addition to supplying a DISABLED attribute (for Opera), to include a class name "disabled"
-			for(var el, i = 0; el = _templateElements[i]; i++)
-				el.disabled = true;
-			
-			//IMPLEMENTATION DEFICIENCY: unable to remove frm.templateElements from frm.elements
-		}
-		
-		//Repetition blocks without a repeat-template attribute are associated with their first following sibling 
-		//   that is a repetition template, if there is one.
-		var attr,sibling = this.parentNode.firstChild;
-		while(sibling && sibling != this){
-			if(sibling.nodeType == 1 && (attr = sibling.getAttributeNode('repeat')) && /^-?\d+$/.test(attr.value) && !sibling.getAttribute('repeat-template')){
-			//if(sibling.repetitionType == RepetitionElement.REPETITION_BLOCK && !sibling.getAttribute('repeat-template')){
-			//console.info(sibling)
-				sibling.repetitionTemplate = this;
-				sibling.setAttribute('repeat-template', this.id);
-				this.repetitionBlocks.push(sibling);
-			}
-			sibling = sibling.nextSibling;
-		}
-		//while(sibling = sibling.previousSibling){
-		//	if(sibling.repetitionType == RepetitionElement.REPETITION_BLOCK && !sibling.getAttribute('repeat-template')){
-		//		sibling.repetitionTemplate = this;
-		//		sibling.setAttribute('repeat-template', this.id);
-		//		this.repetitionBlocks.unshift(sibling);
-		//	}
-		//}
-	
-		//the UA must invoke the template's replication behaviour as many times as the repeat-start attribute 
-		//   on the same element specifies (just once, if the attribute is missing or has an invalid value). 
-		//   Then, while the number of repetition blocks associated with the repetition template is less than 
-		//   the template's repeat-min attribute, the template's replication behaviour must be further invoked. 
-		//   (Invoking the template's replication behaviour means calling its addRepetitionBlock() method).
-		//for(var i = 0; i < Math.max(this.repeatStart, this.repeatMin); i++)
-		for(var i = 0; (i < this.repeatStart || this.repetitionBlocks.length < this.repeatMin); i++)
-			this.addRepetitionBlock();
-		
-		$wf2.repetitionTemplates.push(this);
-		this.wf2Initialized = true;
-	},
-	
-	initRepetitionTemplates : function(parentNode){
-		//UAs must iterate through every node in the document, depth first, looking for templates so that their 
-		//   initial repetition blocks can be created. 
-		//var repetitionTemplates = cssQuery("*[repeat=template]", parentNode);
-		var repetitionTemplates = $wf2.getElementsByTagNamesAndAttribute.apply((parentNode || document.documentElement), [['*'], 'repeat', 'template']);
-		for(var i = 0, rt; i < repetitionTemplates.length; i++)
-			$wf2.constructRepetitionTemplate.apply(repetitionTemplates[i]);
-	},
-
-
-	//## REPETITION BLOCK  #############################################################
-	constructRepetitionBlock : function(){
-		if(this.wf2Initialized)
-			return;
-			
-		this.style.display = ''; //This should preferrably be specified via a stylesheet
-		this.repetitionType = RepetitionElement.REPETITION_BLOCK;
-		var _attr;
-		this.repetitionIndex = /^\d+$/.test(_attr = this.getAttribute('repeat')) ? parseInt(_attr) : 0;
-		this.repetitionBlocks = null;
-		
-		//find this block's repetition template
-		this.repetitionTemplate = null; //IMPLEMENT GETTER
-		var node;
-		
-		if((node = document.getElementById(this.getAttribute('repeat-template'))) && 
-		   node.getAttribute('repeat') == 'template')
-		{
-			this.repetitionTemplate = node;
-		}
-		else {
-			node = this;
-			while(node = node.nextSibling){
-				if(node.nodeType == 1 && node.getAttribute('repeat') == 'template'){
-					this.repetitionTemplate = node;
-					break;
-				}
-			}
-		}
-		
-		if(!this.removeRepetitionBlock) this.removeRepetitionBlock = function(){ 
-			return $wf2.removeRepetitionBlock.apply(this); //wrapper to save memory
-		};
-		if(!this.moveRepetitionBlock) this.moveRepetitionBlock = function(distance){ 
-			return $wf2.moveRepetitionBlock.apply(this, [distance]); //wrapper to save memory
-		};
-		this.wf2Initialized = true;
-	},
-
-	initRepetitionBlocks : function(parentNode){
-		//var repetitionBlocks = cssQuery('*[repeat]:not([repeat="template"])', parentNode); //:not([repeat="template"])
-		var repetitionBlocks = $wf2.getElementsByTagNamesAndAttribute.apply((parentNode || document.documentElement), [['*'], 'repeat', 'template', true]);
-		for(var i = 0; i < repetitionBlocks.length; i++)
-			$wf2.constructRepetitionBlock.apply(repetitionBlocks[i]);
-	},
-	
-	
-	//## Repetition buttons #############################################################
-	repetitionButtonDefaultLabels : {
-		'add' : 'Add',
-		'remove' : 'Remove',
-		'move-up' : 'Move-up',
-		'move-down' : 'Move-down'
-	},
-	
-	constructRepetitionButton : function(btnType){
-		if(this.wf2Initialized)
-			return;
-		this.htmlTemplate = $wf2.getHtmlTemplate(this); //IMPLEMENT GETTER
-		if(!this.firstChild)
-			this.appendChild(document.createTextNode($wf2.repetitionButtonDefaultLabels[btnType]));
-		
-		//user agents must automatically disable remove, move-up, and move-down buttons when they are not in a repetition 
-		//   block. [NOT IMPLEMENTED:] This automatic disabling does not affect the DOM disabled  attribute. It is an intrinsic property of these buttons.
-		if(btnType != 'add')
-			this.disabled = !$wf2.getRepetitionBlock(this);
-		//user agents must automatically disable add buttons (irrespective of the value of the disabled 
-		//   DOM attribute [NOT IMPLEMENTED]) when the buttons are not in a repetition block that has an 
-		//   associated template and their template attribute is either not specified or does not have 
-		//   an ID that points to a repetition template...
-		else {
-			var rb;		
-			this.disabled = !(((rb = $wf2.getRepetitionBlock(this)) && rb.repetitionTemplate)
-								||
-								this.htmlTemplate
-							 );
-		}
-
-		if(this.addEventListener)
-			this.addEventListener('click', $wf2.clickRepetitionButton, false);
-		else if(this.attachEvent)
-			this.attachEvent('onclick', $wf2.clickRepetitionButton);
-		else this.onclick = $wf2.clickRepetitionButton;
-		
-		this.wf2Initialized = true;
-	},
-
-	initRepetitionButtons : function(btnType, parent){
-		var i;
-		if(!parent)
-			parent = document.documentElement;
-
-		//change INPUTs to BUTTONs
-		var inpts = $wf2.getElementsByTagNamesAndAttribute.apply(parent, [['input'], 'type', btnType]);
-		for(i = 0; i < inpts.length; i++){
-			var btn = document.createElement('button');
-			for(var j = 0, attr; attr = inpts[i].attributes[j]; j++)
-				btn.setAttribute(attr.nodeName, inpts[i].getAttribute(attr.nodeName)); //MSIE returns correct value with getAttribute but not nodeValue
-			inpts[i].parentNode.replaceChild(btn, inpts[i]);
-			btn = null;
-		}
-
-		//construct all buttons
-		var btns = $wf2.getElementsByTagNamesAndAttribute.apply(parent, [['button'], 'type', btnType]);
-		for(var i = 0; i < btns.length; i++)
-			$wf2.constructRepetitionButton.apply(btns[i], [btnType]);
-	},
-
-	clickRepetitionButton : function(e){
-		if(e && e.preventDefault)
-			e.preventDefault(); //Keep default submission behavior from executing
-
-		//If the event is canceled (btn.returnValue === false, set within onclick handler), then the default action will not occur.
-		var btn;
-		if(e && e.target)
-			btn = e.target;
-		else if(window.event)
-			btn = event.srcElement;
-		else if(this.nodeName.toLowerCase() == 'button')
-			btn = this;
-		var btnType = String(btn.getAttribute('type')).toLowerCase();
-		
-		//Prevent the onclick handler from firing afterwards (would fire after movement action)
-		//  ISSUE: This only works in Firefox
-		if(btn.onclick){
-			btn._onclick = btn.onclick;
-			btn.removeAttribute('onclick');
-			btn.onclick = null; 
-		}
-
-		//Terminate if an onclick handler was called beforehand and returned a false value
-		//   passed via the button's returnValue property. Handlers defined by HTML attributes
-		//   are called before those assigned by onclick DOM properties.
-		if(btn.returnValue !== undefined && !btn.returnValue){
-			btn.returnValue = undefined;
-			return false;
-		}
-		
-		//Ensure that a user-supplied onclick handler is fired before the repetition behavior is executed
-		//  and terminate if this onclick handler returns a false value
-		//  Note that handlers defined in onclick HTML attributes are executed before clickRepetitionButton
-		if(btn._onclick && btn.returnValue === undefined){ //  && !btn.getAttributeNode("onclick") //&& btn.hasAttribute && !btn.hasAttribute("onclick") //NOTE: MSIE fires this afterwards???			btn.returnValue = btn._onclick(e);
-			btn.returnValue = btn._onclick(e);
-			if(btn.returnValue !== undefined && !btn.returnValue){
-				btn.returnValue = undefined;
-				return false;
-			}
-		}
-		btn.returnValue = undefined;
-		
-		//ISSUE: How do we ensure that the MSIE and DOM Level 2 Event handlers are executed beforehand?
-		
-		var block;
-		if(btnType != 'add'){
-			block = $wf2.getRepetitionBlock(btn);
-			
-			//user agents must automatically disable remove, move-up, and move-down buttons when they are not in a repetition 
-			//   block. [NOT IMPLEMENTED:] This automatic disabling does not affect the DOM disabled  attribute. It is an intrinsic property of these buttons.
-			this.disabled = !block;
-			
-			if(block){
-				if(btnType.indexOf('move') === 0){
-					block._clickedMoveBtn = btn;
-					block.moveRepetitionBlock(btnType == 'move-up' ? -1 : 1);
-				}
-				else if(btnType == 'remove'){
-					block.removeRepetitionBlock();
-				}
-			}
-		}
-		else {
-			var rt;
-			//If an add button with a template attribute is activated, and its template attribute gives the ID 
-			//   of an element in the document that is a repetition template as defined above, then that 
-			//   template's replication behaviour is invoked. (Specifically, in scripting-aware environments, 
-			//   the template's addRepetitionBlock() method is called with a null argument.) In the case of 
-			//   duplicate IDs, the behaviour should be the same as with getElementById().
-			if(btn.htmlTemplate)
-				rt = btn.htmlTemplate;
-			else {
-			//If an add button without a template attribute is activated, and it has an ancestor that is a 
-			//   repetition block that is not an orphan repetition block, then the repetition template associated 
-			//   with that repetition block has its template replication behaviour invoked with the respective 
-			//   repetition block as its argument. (Specifically, in scripting-aware environments, the template's 
-			//   addRepetitionBlock() method is called with a reference to the DOM Element node that represents 
-			//   the repetition block.)
-				block = $wf2.getRepetitionBlock(btn);
-				if(block && block.repetitionTemplate)
-					rt = block.repetitionTemplate;
-			}
-			if(rt)
-				rt.addRepetitionBlock();
-			else
-				btn.disabled = true; //NOTE: THIS IS NOT A VALID IMPLEMENTATION
-		}
-		return false;
-	},
-	
-	//## AddRepetitionBlock algorithm #############################################################
-	
-	//Element addRepetitionBlock(in Node refNode);
-	addRepetitionBlock : function(refNode, index){ //addRepetitionBlockByIndex functionalty enabled if @index defined
-		//if(refNode && !refNode.nodeType)
-		//	throw Error("Exception: WRONG_ARGUMENTS_ERR");
-
-		//if(this.repetitionType == RepetitionElement.REPETITION_TEMPLATE)
-		if(this.getAttribute('repeat') != 'template')
-			throw $wf2.DOMException(9); //NOT_SUPPORTED_ERR
-
-		//if addRepetitionBlock called before repetition constructors called (by pre-filling forms)
-		if(!this.repetitionBlocks)
-			this.repetitionBlocks = [];
-		if(!this.repetitionIndex)
-			this.repetitionIndex = 0;
-		if(!this.repeatMin)
-			this.repeatMin = 0;
-		if(!this.repeatMax)
-			this.repeatMax = Number.MAX_VALUE;
-		if(!this.repeatStart)
-			this.repeatStart = 1;
-
-		//1. If the template has no parent node or its parent node is not an element, then the method must abort 
-		//   the steps and do nothing. 
-		if(this.parentNode == null)
-			return null;
-			
-		//[furthermore, if this template is the child of another template (not the child of an instance, a block) return false]
-		var node = this;
-		while(node = node.parentNode){
-			//if(node.repetitionType == RepetitionElement.REPETITION_TEMPLATE)
-			if(node.nodeType == 1 && node.getAttribute('repeat') == 'template')
-				return false;
-		}
-		
-		//2. The template examines its preceding siblings, up to the start of the parent element. For each sibling 
-		//   that is a repetition block whose associated template is this template, if the repetition block's index 
-		//   is greater than or equal to the template's index, then the template's index is increased to the repetition 
-		//   block's index plus one. The total number of repetition blocks associated with this template that were 
-		//   found is used in the next step.
-		//QUESTION: Why not just use this.repetitionBlocks.length????????????
-		var sibling = this.previousSibling;
-		var currentBlockCount = 0;
-		while(sibling != null){
-			if(sibling.nodeType == 1){
-				var repeatAttr,repeatTemplateAttr;
-				repeat = parseInt(sibling.getAttribute('repeat'));
-				repeatTemplateAttr = sibling.getAttributeNode('repeat-template');
-				
-				//if(sibling.repetitionType == RepetitionElement.REPETITION_BLOCK && sibling.repetitionTemplate == this)
-				if(!isNaN(repeat) && (!repeatTemplateAttr || repeatTemplateAttr.value == this.id))
-				{
-					//Old Note: sibling.getAttribute('repeat') is used instead of sibling.repetitionIndex because appearantly
-					//      the sibling is not yet bound to the document and so the getters are not available
-					//this.repetitionIndex = Math.max(this.repetitionIndex, parseInt(sibling.getAttribute('repeat'))+1);
-					this.repetitionIndex = Math.max(this.repetitionIndex, repeat+1);
-					currentBlockCount++;
-				}
-			}
-			sibling = sibling.previousSibling;
-		}
-		
-		//3. If the repetition template has a repeat-max attribute and that attribute's value is less than or equal 
-		//   to the number of repetition blocks associated with this template that were found in the previous step, 
-		//   the UA must stop at this step, returning a null value.
-		if(this.repeatMax <= currentBlockCount)
-			return null;
-			
-		//4. If this algorithm was invoked via the addRepetitionBlockByIndex()  method, and the value of the method's 
-		//   index argument is greater than the template's index, then the template's index is set to the value of the 
-		//   method's index argument.
-		if(index !== undefined && index > this.repetitionIndex)
-			this.repetitionIndex = index;
-
-		//(the following steps are out of order to facilitate a custom cloneNode to cope for MSIE and Gecko issues)
-		
-		//9. If the new repetition block has an ID attribute (that is, an attribute specifying an ID, regardless 
-		//   of the attribute's namespace or name), then that attribute's value is used as the template name in 
-		//   the following steps. Otherwise, the template has no name. (If there is more than one ID attribute, 
-		//   the "first" one in terms of node order is used. [DOM3CORE]) 
-		//   [Since this step was moved here, it uses 'this' and not 'block', which hasn't been created yet]
-		//var IDAttr = block.getAttributeNode('id') ? block.getAttributeNode('id') : block.getAttributeNode('name'); //DETECT ID TYPE For others?
-		var IDAttrName = this.getAttribute('id') ? 'id' : this.getAttribute('name') ? 'name' : ''; //NOTE: hasAttribute not implemented in MSIE
-		var IDAttrValue = this.getAttribute(IDAttrName);
-
-		//5. A clone of the template is made. The resulting element is the new repetition block element.
-		//   [Note that the DOM cloneNode method is not invoked in this implementation due to MSIE 
-		//   errors, such as not being able to modify the name attribute of an existing node and strange Gecko behavior
-		//   regarding the inconsistant correspondence of an input node's value attribute and value property.
-		//   Instead of invoking the native cloneNode method, each element is copied manually when it is iterated over.]
-		//	 [Note: step 11 of the the specification's algorithm has been merged into step 5. See note at step 11 below]
-		//(11). If the template has a name and it is not being ignored (see the previous two steps), then, for every 
-		//      attribute on the new element, and for every attribute in every descendant of the new element: if the 
-		//      attribute starts with a zero-width non-breaking space character (U+FEFF) then that character is 
-		//      removed from the attribute; otherwise, any occurrences of a string consisting of an opening square 
-		//      bracket (U+005B, "[") or a modifier letter half triangular colon (U+02D1), the template's name, 
-		//      and a closing square bracket (U+005D, "]") or a middle dot (U+00B7), are replaced by the new 
-		//      repetition block's index. This is performed regardless of the types, names, or namespaces of attributes, 
-		//      and is done to all descendants, even those inside nested forms, nested repetition templates, and so forth.
-		var block;
-		
-		//(10). If the template has a name (see the previous step), and that name contains either an opening square 
-		//      bracket (U+005B, "[") a modifier letter half triangular colon (U+02D1), a closing square bracket 
-		//      (U+005D, "]") or a middle dot (U+00B7), then the template's name is ignored for the purposes of 
-		//      [this] step.
-		var replaceValue = this.repetitionIndex;
-		var reTemplateName, processAttr;
-		if(IDAttrValue && !/\u005B|\u02D1|\u005D|\u00B7/.test(IDAttrValue)){ //VALID LOGIC?
-			reTemplateName = new RegExp("(\\[|\u02D1)" + IDAttrValue + "(\\]|\u00B7)", 'g'); //new RegExp('(\\u005B|\\u02D1)' + IDAttrValue + '(\\u005D|\\u00B7)', 'g');
-			processAttr = function(attrVal){ //Function that processes an attribute value as defined in step 11
-				if(!attrVal) 
-					return attrVal;
-				attrVal = attrVal.toString();
-				if(attrVal.indexOf("\uFEFF") === 0)
-					return attrVal.replace(/^\uFEFF/, '');
-				return attrVal.replace(reTemplateName, replaceValue);
-			};
-		}
-		block = $wf2.cloneNode(this, processAttr);
-		block.wf2Initialized = false;
-		reTemplateName = null;
-		
-		//6. If this algorithm was invoked via the addRepetitionBlockByIndex()  method, the new repetition block 
-		//   element's index is set to the method's index argument. Otherwise, the new repetition block element's 
-		//   index is set to the template's index. [Note: if called by addRepetitionBlockByIndex() then the 
-		//   template's repetitionIndex has already been set to the index argument. Redundant algorithm step.]
-		//block.repetitionIndex = this.repetitionIndex; //this is set in the constructor for the repetitionBlock
-		//7. If the new repetition block element is in the http://www.w3.org/1999/xhtml namespace, then the 
-		//   repeat attribute in no namespace on the cloned element has its value changed to the new block's 
-		//   index. Otherwise, the repeat attribute in the http://www.w3.org/1999/xhtml namespace has its value 
-		//   changed to the new block's index.
-		//if(block.namespaceURI == 'http://www.w3.org/1999/xhtml')
-			block.setAttribute('repeat', this.repetitionIndex); //when inserted into DOM, constructor sets block.repetitionIndex
-		//else
-		//	block.setAttributeNS('http://www.w3.org/1999/xhtml', 'repeat', this.repetitionIndex);
-		
-		//8. If the new repetition block element is in the http://www.w3.org/1999/xhtml namespace, then any 
-		//   repeat-min, repeat-max, or repeat-start attributes in no namespace are removed from the element. 
-		//   Otherwise, any repeat-min, repeat-max, or repeat-start attributes in the http://www.w3.org/1999/xhtml 
-		//   namespace are removed instead.
-
-		//if(block.namespaceURI == 'http://www.w3.org/1999/xhtml'){
-			block.removeAttribute('repeat-min');
-			block.removeAttribute('repeat-max');
-			block.removeAttribute('repeat-start');
-		//}
-		//else {
-		//	block.removeAttributeNS('http://www.w3.org/1999/xhtml', 'repeat-min');
-		//	block.removeAttributeNS('http://www.w3.org/1999/xhtml', 'repeat-max');
-		//	block.removeAttributeNS('http://www.w3.org/1999/xhtml', 'repeat-start');
-		//}
-		
-		//(steps 9 and 10 moved to before step 5 (operates on this repetition template, and not on cloned block))
-
-
-		//11. (Note: the algorithm below which most closely follows the algorithm as described in the specification,
-		//    this has been merged into the cloning of the template in step 5. This has been done because of MSIE 
-		//    errors, such as not being able to modify the name attribute of an existing node and strange Gecko behavior
-		//    regarding the inconsistant correspondence of an input node's value attribute and value property.)
-		//if(IDAttrValue && !ignoreName){
-		//	var reTemplateName = new RegExp('(?:\\u005B|\\u02D1)' + IDAttrValue + '(?:\\u005D|\\u00B7)', 'g');
-		//	function processAttrs(node){
-		//		var i,attr;
-		//		for(i = 0; node.attributes && i < node.attributes.length; i++){
-		//			if(!(attr = node.attributes[i]).nodeValue)
-		//				continue;
-		//			
-		//			if(String(attr.nodeValue).indexOf("\uFEFF") === 0)
-		//				attr.nodeValue = attr.nodeValue.replace(/^\uFEFF/, '');
-		//				
-		//			else if(reTemplateName.test(attr.nodeValue))
-		//				attr.nodeValue = attr.nodeValue.replace(reTemplateName, block.getAttribute('repeat'));
-		//		}
-		//		for(i = 0; i < node.childNodes.length; i++)
-		//			processAttrs(node.childNodes[i]);
-		//	}
-		//	processAttrs(block);
-		//}
-
-			
-		//12. If the template has a name (see the earlier steps): If the new repetition block element is in the 
-		//    http://www.w3.org/1999/xhtml namespace, then the repeat-template attribute in no namespace on the 
-		//    cloned element has its value set to the template's name. Otherwise, the repeat-template attribute 
-		//    in the http://www.w3.org/1999/xhtml namespace has its value set to the template's name. (This 
-		//    happens even if the name was ignored for the purposes of the previous step.)
-		if(IDAttrName){
-			//if(block.namespaceURI == "http://www.w3.org/1999/xhtml")
-				block.setAttribute('repeat-template', IDAttrValue); //block.setAttributeNS(null, 'repeat-template', IDAttr.nodeValue);
-			//else 
-			//	block.setAttributeNS('http://www.w3.org/1999/xhtml', 'repeat-template', IDAttr.nodeValue);
-			
-			
-			//13. The attribute from which the template's name was derived, if any, and even if it was ignored, is 
-			//    removed from the new repetition block element. (See the previous four steps.)
-			block.removeAttribute(IDAttrName);
-		}
-
-		//14. If the first argument to the method was null, then the template once again crawls through its 
-		//    previous siblings, this time stopping at the first node (possibly the template itself) whose 
-		//    previous sibling is a repetition block (regardless of what that block's template is) or the first 
-		//    node that has no previous sibling, whichever comes first. The new element is the inserted into the 
-		//    parent of the template, immediately before that node. Mutation events are fired if appropriate.
-		if(!refNode){
-			refNode = this;
-			while(refNode.previousSibling && refNode.previousSibling.repetitionType != RepetitionElement.REPETITION_BLOCK)
-				refNode = refNode.previousSibling;
-			this.parentNode.insertBefore(block, refNode);
-			this.repetitionBlocks.push(block);
-		}
-		//15. Otherwise, the new element is inserted into the parent of the node that was passed to the method 
-		//    as the first argument, immediately after that node (before the node's following sibling, if any). 
-		//    Mutation events are fired if appropriate.
-		else {
-			refNode.parentNode.insertBefore(block, refNode.nextSibling);
-			this.repetitionBlocks.push(block);
-			if($wf2.sortNodes)
-				this.repetitionBlocks.sort($wf2.sortNodes);
-		}
-		
-		//16. The template's index is increased by one. 
-		this.repetitionIndex++;
-		
-		//[apply constructors to the new repetition block, and to the new remove buttons, add buttons, etc]
-		$wf2.constructRepetitionBlock.apply(block);
-		$wf2.initRepetitionTemplates(block);
-		
-		$wf2.initRepetitionButtons('add', block);
-		$wf2.initRepetitionButtons('remove', block);
-		$wf2.initRepetitionButtons('move-up', block);
-		$wf2.initRepetitionButtons('move-down', block);
-		
-		//In addition, user agents must automatically disable add buttons (irrespective of the value of the 
-		//   disabled DOM attribute) when the buttons are not in a repetition block that has an associated 
-		//   template and their template attribute is either not specified or does not have an ID that points 
-		//   to a repetition template, and, when the repetition template's repeat-max attribute is less than 
-		//   or equal to the number of repetition blocks that are associated with that template and that have 
-		//   the same parent. This automatic disabling does not affect the DOM disabled attribute. It is an 
-		//   intrinsic property of these buttons.
-		if($wf2.isInitialized){ //if buttons not yet initialized, will initially be called by _init_document
-			$wf2.updateAddButtons(this);
-			$wf2.updateMoveButtons(this.parentNode);
-		}
-		
-		//Setup block with the other WF2 behavior
-		$wf2.initNonRepetitionFunctionality(block);
-		//var els = $wf2.getElementsByTagNamesAndAttribute.apply(block, [['*'], "autofocus"]); //ISSUE: Any form control (except hidden and output controls) can have an autofocus attribute specified. //var elName = els[i].nodeName.toLowerCase(); if(elName == 'output' || (elName == 'input' && els[i].type == 'hidden'))
-		//for(var i = 0; i < els.length; i++)
-		//	$wf2.initAutofocusElement(els[i]);
-
-		//17. An added event with no namespace, which bubbles but is not cancelable and has no default action, 
-		//    must be fired on the repetition template using the RepetitionEvent interface, with the repetition 
-		//    block's DOM node as the context information in the element  attribute.
-		var addEvt;
-		try {
-			if(document.createEvent)
-				addEvt = document.createEvent('UIEvents'); //document.createEvent("RepetitionEvent")
-			else if(document.createEventObject)
-				addEvt = document.createEventObject();
-			RepetitionEvent._upgradeEvent.apply(addEvt);
-			addEvt.initRepetitionEvent('added', true /*canBubble*/, false /*cancelable*/, block);
-			if(this.dispatchEvent)
-				this.dispatchEvent(addEvt);
-			else if(this.fireEvent){
-				//console.warn("fireEvent('onadd') for MSIE is not yet working");
-				//this.fireEvent('onadded', addEvt);
-			}
-		}
-		catch(err){
-			addEvt = new Object();
-			RepetitionEvent._upgradeEvent.apply(addEvt);
-			addEvt.initRepetitionEvent('added', true /*canBubble*/, false /*cancelable*/, block);
-		}
-
-		//Add support for event handler set with HTML attribute 
-		var handlerAttr;
-		if((handlerAttr = this.getAttribute('onadded')) && (!this.onadded || typeof this.onadded != 'function')){  //in MSIE, attribute == property
-			this.onadded = new Function('event', handlerAttr);
-		}
-		//Deprecated
-		else if((handlerAttr = this.getAttribute('onadd')) && (!this.onadd || typeof this.onadd != 'function')){
-			this.onadd = new Function('event', handlerAttr);
-		}
-
-		try {
-			//Dispatch events for the old event model (extension to spec)
-			if(this.onadded){
-				//this.onadded(addEvt); 
-				this.onadded.apply(this, [addEvt]); //for some reason, exceptions cannot be caught if using the method above in MSIE
-			}
-			else if(this.onadd){ //deprecated
-				//this.onadd(addEvt);
-				this.onadd.apply(this, [addEvt]); 
-			}
-		}
-		catch(err){
-			//throw exception within setTimeout so that the current execution will not be aborted
-			setTimeout(function(){
-				throw err;
-			}, 0); //using 0 milliseconds done at <http://novemberborn.net/javascript/threading-quick-tip>
-		}
-
-		//18. The return value is the newly cloned element.
-		return block;
-	},
-	//Element addRepetitionBlockByIndex(in Node refNode, in long index);
-	addRepetitionBlockByIndex : function(refNode, index){
-		$wf2.addRepetitionBlock.apply(this, [refNode, index])
-	},
-	
-	//## RemoveRepetitionBlock algorithm #############################################################
-	
-	//void removeRepetitionBlock();
-	removeRepetitionBlock : function(){
-		if(this.repetitionType != RepetitionElement.REPETITION_BLOCK)
-			throw $wf2.DOMException(9); //NOT_SUPPORTED_ERR
-
-		//1. The node is removed from its parent, if it has one. Mutation events are fired if appropriate. 
-		//   (This occurs even if the repetition block is an orphan repetition block.)
-		var parentNode = this.parentNode; //save for updateMoveButtons
-		var block = parentNode.removeChild(this);
-		$wf2.updateMoveButtons(parentNode);
-		
-		//The following loop used to appear within step #3 below; 
-		//  this caused problems because the program state was incorrect when onremoved was called (repetitionBlocks was not modified)
-		if(this.repetitionTemplate != null){
-			for(var i = 0; i < this.repetitionTemplate.repetitionBlocks.length; i++){
-				if(this.repetitionTemplate.repetitionBlocks[i] == this){
-					this.repetitionTemplate.repetitionBlocks.splice(i,1);
-					break;
-				}
-			}
-		}
-
-		//2. If the repetition block is not an orphan, a removed event with no namespace, which bubbles but 
-		//   is not cancelable and has no default action, must be fired on the element's repetition template, 
-		//   using the RepetitionEvent interface, with the repetition block's DOM node as the context information 
-		//   in the element attribute.
-		if(this.repetitionTemplate != null){
-			var removeEvt;
-			try {
-				if(document.createEvent)
-					removeEvt = document.createEvent('UIEvents'); //document.createEvent("RepetitionEvent")
-				else if(document.createEventObject)
-					removeEvt = document.createEventObject();
-				RepetitionEvent._upgradeEvent.apply(removeEvt);
-				removeEvt.initRepetitionEvent('removed', true /*canBubble*/, false /*cancelable*/, this);
-				if(this.repetitionTemplate.dispatchEvent)
-					this.repetitionTemplate.dispatchEvent(removeEvt);
-				else if(this.repetitionTemplate.fireEvent){
-					//console.warn("fireEvent('onremoved') for MSIE is not yet working");
-					//this.repetitionTemplate.fireEvent('onremoved', removeEvt);
-				}
-			}
-			catch(err){
-				removeEvt = new Object();
-				RepetitionEvent._upgradeEvent.apply(removeEvt);
-				removeEvt.initRepetitionEvent('removed', true /*canBubble*/, false /*cancelable*/, this);
-			}
-			
-			//Add support for event handler set with HTML attribute
-			var handlerAttr;
-			if((handlerAttr = this.repetitionTemplate.getAttribute('onremoved')) &&
-				    (!this.repetitionTemplate.onremoved || typeof this.repetitionTemplate.onremoved != 'function')) //in MSIE, attribute == property
-			{  
-				this.repetitionTemplate.onremoved = new Function('event', handlerAttr);
-			}
-			//Deprecated
-			else if((handlerAttr = this.repetitionTemplate.getAttribute('onremove')) &&
-					 (!this.repetitionTemplate.onremove || typeof this.repetitionTemplate.onremove != 'function'))
-			{
-				this.repetitionTemplate.onremove = new Function('event', handlerAttr);
-			}
-
-			try {
-				//Dispatch events for the old event model (extension to spec)
-				if(this.repetitionTemplate.onremoved){
-					//this.repetitionTemplate.onremoved(removeEvt);	
-					this.repetitionTemplate.onremoved.apply(this, [removeEvt]); //for some reason, exceptions cannot be caught if using the method above in MSIE
-				}
-				else if(this.repetitionTemplate.onremove){ //deprecated
-					//this.repetitionTemplate.onremove(removeEvt);
-					this.repetitionTemplate.onremove.apply(this, [removeEvt]); 
-				}
-			}
-			catch(err){
-				//throw exception within setTimeout so that the current execution will not be aborted
-				setTimeout(function(){
-					throw err;
-				}, 0);
-			}
-		}
-
-		//3. If the repetition block is not an orphan, then while the remaining number of repetition blocks 
-		//   associated with the original element's repetition template and with the same parent as the template 
-		//   is less than the template's repeat-min attribute and less than its repeat-max attribute, the 
-		//   template's replication behaviour is invoked (specifically, its addRepetitionBlock() method is called). 
-		if(this.repetitionTemplate != null){
-//			//BUG: The following needs to be moved before the call to onremoved
-//			var t = this.repetitionTemplate;
-//			for(var i = 0; i < t.repetitionBlocks.length; i++){
-//				if(t.repetitionBlocks[i] == this){
-//					t.repetitionBlocks.splice(i,1);
-//					break;
-//				}
-//			}
-			if(this.repetitionTemplate.repetitionBlocks.length < this.repetitionTemplate.repeatMin 
-			     && this.repetitionTemplate.repetitionBlocks.length < this.repetitionTemplate.repeatMax)
-			{
-				this.repetitionTemplate.addRepetitionBlock();
-			}
-
-			//enable add buttons
-			if(this.repetitionTemplate.repetitionBlocks.length < this.repetitionTemplate.repeatMax){
-				//var addBtns = cssQuery("button[type=add]");
-				var addBtns = $wf2.getElementsByTagNamesAndAttribute.apply(document.documentElement, [['button'], 'type', 'add']);
-				for(i = 0; i < addBtns.length; i++){
-					if(addBtns[i].htmlTemplate == this.repetitionTemplate)
-						addBtns[i].disabled = false;
-				}
-			}
-		}
-	},
-
-	//## MoveRepetitionBlock algorithm #############################################################
-	 
-	//void moveRepetitionBlock(in long distance);
-	moveRepetitionBlock : function(distance){
-		if(this.repetitionType != RepetitionElement.REPETITION_BLOCK)
-			throw $wf2.DOMException(9); //NOT_SUPPORTED_ERR
-		
-		//1. If distance is 0, or if the repetition block has no parent, nothing happens and the algorithm ends here.
-		if(distance == 0 || this.parentNode == null)
-			return;
-		
-		//2. Set target, a reference to a DOM Node, to the repetition block being moved.
-		//   [Furthermore, move the reference to this block in the template's repetitionBlocks HTMLCollection to 
-		//   reflect the new position that it is being moved to.]
-		var target = this;
-		if(this.repetitionTemplate){
-			var pos = 0;
-			var rp = this.repetitionTemplate.repetitionBlocks;
-			while(pos < rp.length && rp[pos] != this)
-				pos++;
-			rp.splice(pos, 1);
-			rp.splice(distance < 0 ? Math.max(pos+distance, 0) : Math.min(pos+distance, rp.length), 0, this);
-		}
-		
-		//3. If distance is negative: while distance is not zero and target's previousSibling is defined and is 
-		//   not a repetition template, set target to this previousSibling and, if it is a repetition block, 
-		//   increase distance by one (make it less negative by one).
-		if(distance < 0){
-			while(distance != 0 && target.previousSibling && 
-			      target.previousSibling.repetitionType != RepetitionElement.REPETITION_TEMPLATE)
-			{
-				target = target.previousSibling;
-				if(target.repetitionType == RepetitionElement.REPETITION_BLOCK)
-					distance++;
-			}
-		}
-		//4. Otherwise, distance is positive: while distance  is not zero and target's nextSibling is defined 
-		//   and is not a repetition template, set target to this nextSibling and, if it is a repetition block, 
-		//   decrease distance by one. After the loop, set target to target's nextSibling (which may be null).
-		else {
-			while(distance != 0 && target.nextSibling && target.nextSibling.repetitionType != RepetitionElement.REPETITION_TEMPLATE){
-				target = target.nextSibling;
-				if(target.repetitionType == RepetitionElement.REPETITION_BLOCK)
-					distance--;
-			}
-			target = target.nextSibling;
-		}
-		
-		//5. Call the repetition block's parent node's insertBefore()  method with the newChild argument 
-		//   being the repetition block and the refChild argument being target (which may be null by this 
-		//   point). Mutation events are fired if appropriate. 
-		this.parentNode.insertBefore(this, target);
-		
-		//Keep focus on the move button which was clicked
-		if(this._clickedMoveBtn){
-			this._clickedMoveBtn.focus();
-			this._clickedMoveBtn = null;
-		}
-		
-		//In addition, user agents must automatically disable move-up buttons (irrespective of the 
-		//   value of the disabled DOM attribute) when their repetition block could not be moved any 
-		//   higher according to the algorithm above, and when the buttons are not in a repetition 
-		//   block. Similarly, user agents must automatically disable move-down buttons when their 
-		//   repetition block could not be moved any lower according to the algorithm above, and 
-		//   when the buttons are not in a repetition block. This automatic disabling does not affect 
-		//   the DOM disabled  attribute. It is an intrinsic property of these buttons.
-		$wf2.updateMoveButtons(this.parentNode);
-		
-		//6. A moved event with no namespace, which bubbles but is not cancelable and has no default action, 
-		//   must be fired on the element's repetition template (if it has one), using the RepetitionEvent 
-		//   interface, with the repetition block's DOM node as the context information in the element  attribute.
-		if(this.repetitionTemplate != null){
-			var moveEvt;
-			try {
-				if(document.createEvent)
-					moveEvt = document.createEvent('UIEvents'); //document.createEvent("RepetitionEvent")
-				else if(document.createEventObject)
-					moveEvt = document.createEventObject();
-				RepetitionEvent._upgradeEvent.apply(moveEvt);
-				moveEvt.initRepetitionEvent('moved', true /*canBubble*/, false /*cancelable*/, this);
-				if(this.repetitionTemplate.dispatchEvent)
-					this.repetitionTemplate.dispatchEvent(moveEvt);
-				else if(this.repetitionTemplate.fireEvent){
-					//console.warn("fireEvent('onmoved') for MSIE is not yet working");
-					//this.fireEvent('onmoved', moveEvt);
-				}
-			}
-			catch(err){
-				moveEvt = new Object();
-				RepetitionEvent._upgradeEvent.apply(moveEvt);
-				moveEvt.initRepetitionEvent('moved', true /*canBubble*/, false /*cancelable*/, this);
-			}
-			
-			//Add support for event handler set with HTML attribute---------------------
-			var handlerAttr;
-			if((handlerAttr = this.repetitionTemplate.getAttribute('onmoved')) &&
-				    (!this.repetitionTemplate.onmoved || typeof this.repetitionTemplate.onmoved != 'function')) //in MSIE, attribute == property
-			{  
-				this.repetitionTemplate.onmoved = new Function('event', handlerAttr);
-			}
-			//Deprecated
-			else if(handlerAttr = this.repetitionTemplate.getAttribute('onmove'))
-			{
-				if(!this.repetitionTemplate.onmove || typeof this.repetitionTemplate.onmove != 'function'){
-					this.repetitionTemplate.onmove = new Function('event', handlerAttr);
-				}
-
-				//For MSIE, onmove is already an event, and attributes are equal to properties, so attribute value can be function.
-				//  The 'event' argument must be added to the function argument list.
-				var funcMatches;
-				if(typeof handlerAttr == 'function' && (funcMatches = handlerAttr.toString().match(/^\s*function\s+anonymous\(\s*\)\s*\{((?:.|\n)+)\}\s*$/))){
-					this.repetitionTemplate.onmove = new Function('event', funcMatches[1]);
-				}
-			}
-			
-			
-//			var onmovedAttr = this.repetitionTemplate.getAttribute('onmoved') 
-//			                   || /* deprecated */ this.repetitionTemplate.getAttribute('onmove');
-			
-			//For MSIE, onmove is already an event, and attributes are equal to properties, so attribute value can be function.
-			//  The 'event' argument must be added to the function argument list.
-//			var funcMatches;
-//			if(typeof onmovedAttr == 'function' && (funcMatches = onmovedAttr.toString().match(/^\s*function\s+anonymous\(\s*\)\s*\{((?:.|\n)+)\}\s*$/))){
-//				this.repetitionTemplate.onmoved = new Function('event', funcMatches[1]);
-//			}
-			
-			//If the onmove attribute has been set but the property (method) has not
-//			if(onmovedAttr && !this.repetitionTemplate.onmoved)
-//				this.repetitionTemplate.onmoved = new Function('event', onmovedAttr);
-			
-			//This need not be done in MSIE since onmove is already an event, and attributes == properties
-			//if(onmoveAttr && typeof onmoveAttr != 'function' /* for MSIE */ && 
-			//      (!this.repetitionTemplate.onmove || typeof this.repetitionTemplate.onmove != 'function')
-			//   ){
-			//	this.repetitionTemplate.onmove = new Function('event', onmoveAttr);
-			//}
-
-			try {
-				//Dispatch events for the old event model (extension to spec)
-				if(this.repetitionTemplate.onmoved){
-					//this.repetitionTemplate.onmoved(moveEvt);
-					this.repetitionTemplate.onmoved.apply(this, [moveEvt]);
-				}
-				else if(this.repetitionTemplate.onmove){ //deprecated
-					//this.repetitionTemplate.onmove(moveEvt);
-					this.repetitionTemplate.onmove.apply(this, [moveEvt]);
-				}
-			}
-			catch(err){
-				//throw exception within setTimeout so that the current execution will not be aborted
-				setTimeout(function(){
-					throw err;
-				}, 0); //using 0 milliseconds done at <http://novemberborn.net/javascript/threading-quick-tip>
-			}
-		}
-	},
-	
-	//## Other helper functions for the repetition model behaviors ##############################
-	getRepetitionBlock : function(node){
-		while(node = node.parentNode){
-			if(node.repetitionType == RepetitionElement.REPETITION_BLOCK){
-				return node;
-			}
-		}
-		return null;
-	},
-
-	getHtmlTemplate : function(button){
-		var attr = button.getAttribute('template');
-		var node;
-		if(attr && (node = document.getElementById(attr)) && node.getAttribute('repeat') == 'template' /*node.repetitionType == RepetitionElement.REPETITION_TEMPLATE*/)
-			return node;
-		return null;
-	},
-	
-	updateAddButtons : function(rt){
-		//In addition, user agents must automatically disable add buttons (irrespective of the value of the 
-		//   disabled DOM attribute) when the buttons are not in a repetition block that has an associated 
-		//   template and their template attribute is either not specified or does not have an ID that points 
-		//   to a repetition template, and, when the repetition template's repeat-max attribute is less than 
-		//   or equal to the number of repetition blocks that are associated with that template and that have 
-		//   the same parent. This automatic disabling does not affect the DOM disabled attribute. It is an 
-		//   intrinsic property of these buttons.
-		
-		var repetitionTemplates = rt ? [rt] : $wf2.repetitionTemplates;
-		
-		//var btns = cssQuery("button[type=add]");
-		var btns = $wf2.getElementsByTagNamesAndAttribute.apply(document.documentElement, [['button'], 'type', 'add']);
-		for(var i = 0; i < btns.length; i++){
-			for(var t, j = 0; t = repetitionTemplates[j]; j++){
-				if(btns[i].htmlTemplate == t && t.repetitionBlocks.length >= t.repeatMax){
-					btns[i].disabled = true;
-				}
-			}
-		}
-	},
-
-	updateMoveButtons : function(parent){
-		//In addition, user agents must automatically disable move-up buttons (irrespective of the value of 
-		//   the disabled DOM attribute) when their repetition block could not be moved any higher according 
-		//   to the algorithm above, and when the buttons are not in a repetition block. Similarly, user agents 
-		//   must automatically disable move-down buttons when their repetition block could not be moved any 
-		//   lower according to the algorithm above, and when the buttons are not in a repetition block. This 
-		//   automatic disabling does not affect the DOM disabled  attribute. It is an intrinsic property of 
-		//   these buttons.
-		
-		var i;
-		var rbs = [];
-		
-		//update all move buttons if a repetition block's parent was not given
-		if(!parent){
-			var visitedParents = [];
-			//var rbs = cssQuery('*[repeat]:not([repeat="template"])');
-			//var rbs = $wf2.getElementsByProperty('repetitionType', RepetitionElement.REPETITION_BLOCK);
-			rbs = $wf2.getElementsByTagNamesAndAttribute.apply(document.documentElement, [['*'], 'repeat', 'template', true]);
-			for(i = 0; block = rbs[i]; i++){
-				//if(!visitedParents.some(function(i){return i == block.parentNode})){
-				if(!$wf2.arrayHasItem(visitedParents, block.parentNode)){
-					$wf2.updateMoveButtons(block.parentNode);
-					visitedParents.push(block.parentNode);
-				}
-			}
-			return;
-		}
-		
-		//get all of the repetition block siblings
-		var j,btn,block;
-		var child = parent.firstChild;
-		while(child){
-			if(child.repetitionType == RepetitionElement.REPETITION_BLOCK)
-				rbs.push(child);
-			child = child.nextSibling;
-		}
-		
-		//disable or enable movement buttons within each block
-		for(i = 0; block = rbs[i]; i++){
-			//var moveUpBtns = cssQuery("button[type=move-up]", block);
-			var moveUpBtns = $wf2.getElementsByTagNamesAndAttribute.apply(block, [['button'], 'type', 'move-up']);
-			for(j = 0; btn = moveUpBtns[j]; j++){
-				btn.disabled = 
-					//if the button is not in a repetition block
-					!(rb = $wf2.getRepetitionBlock(btn))
-					 ||
-					//when their repetition block could not be moved any lower
-					(i == 0);
-			}
-			//var moveDownBtns = cssQuery("button[type=move-down]", block);
-			var moveDownBtns = $wf2.getElementsByTagNamesAndAttribute.apply(block, [['button'], 'type', 'move-down']);
-			for(j = 0; btn = moveDownBtns[j]; j++){
-				btn.disabled = 
-					//if the button is not in a repetition block
-					!(rb = $wf2.getRepetitionBlock(btn))
-					 ||
-					//when their repetition block could not be moved any higher
-					(i == rbs.length-1);
-			}
-		}
-	},
 
 	/*#############################################################################################
 	 # Section: Extensions to the input element
@@ -1427,8 +460,9 @@ $wf2 = {
 		parent = (parent || document.documentElement);
 		var i,j, frm, frms = parent.getElementsByTagName('form');
 		for(i = 0; frm = frms[i]; i++){
-			if(frm.checkValidity && !$wf2.hasBadImplementation)
+			if(frm.checkValidity && !$wf2.hasBadImplementation && $wf2.getAttributeValue(frm, 'data-webforms2-force-js-validation') != 'true') {
 				continue;
+			}
 			frm.checkValidity = $wf2.formCheckValidity;
 			
 			if(frm.addEventListener)
@@ -1509,13 +543,31 @@ $wf2 = {
 		var formElements = $wf2.getFormElements.apply(this);
 		//for(i = 0; i < formElements.length; i++)
 		//	_elements.push(formElements[i]);
-		for(i = 0; el = formElements[i]; i++){
+		for(i = 0; el = formElements[i]; i++){ 
 			var type = (el.getAttribute('type') ? el.getAttribute('type').toLowerCase() : el.type);
-			el.willValidate = !(/(hidden|button|reset|add|remove|move-up|move-down)/.test(type) || !el.name || el.disabled)
+			
+			try {
+				el.willValidate = !(/(hidden|button|reset|add|remove|move-up|move-down)/.test(type) || !el.name || el.disabled)
+			} catch (ex) {
+				// do nothing.
+			}
 			//Then, each element in this list whose willValidate DOM attribute is true is checked for validity
 			if(el.checkValidity && el.willValidate){
-				if(!el.checkValidity())
+				if(!el.checkValidity() && el.checkValidity() != undefined) {
 					valid = false;
+					
+					/* var oninvalid = el.getAttribute('oninvalid');
+					if (oninvalid) {
+						oninvalid();
+					} */
+					
+					
+					/* we change this to only show the first error.
+					if (!$wf2.showAllErrors) {
+						break;
+					}
+					*/
+				}
 			}
 		}
 		
@@ -1528,10 +580,13 @@ $wf2 = {
 	hiliteFirstError: function () {
 		
 		if($wf2.invalidIndicators.length){ //second condition needed because modal in oninvalid handler may cause indicators to disappear before this is reached
-			$wf2.invalidIndicators[0].errorMsg.className += " wf2_firstErrorMsg";
-			
+			//$wf2.invalidIndicators[0].errorMsg.className += " wf2_firstErrorMsg";
+			$wf2.css.addClass($wf2.invalidIndicators[0].errorMsg, "wf2_firstErrorMsg");
 			//scroll to near the location where invalid control is
 			el = $wf2.invalidIndicators[0].target;
+			
+			var doScroll = (el.form.getAttribute('data-wf2-no-scroll-on-error') != 'true')
+			
 			if(el.style.display == 'none' || !el.offsetParent){
 				while(el && (el.nodeType != 1 || (el.style.display == 'none' || !el.offsetParent)))
 					el = el.previousSibling;
@@ -1542,7 +597,9 @@ $wf2 = {
 					while (cur = cur.offsetParent)
 						top += cur.offsetTop;
 				}
-				scrollTo(0, top);
+				if (doScroll) {
+					scrollTo(0, top);
+				}
 			}
 			//focus on the first invalid control and make sure error message is visible
 			else {
@@ -1554,15 +611,24 @@ $wf2 = {
 					}
 				, 10)
 				
+				
+				var elPos = $wf2.css.getAbsoluteCoords(el);
+				var maxBottom = $wf2.css.getScrollY() + $wf2.css.getWindowHeight();
+				var errorMsgHeight = $wf2.invalidIndicators[0].errorMsg.offsetHeight;
+				
+				console.log(elPos.y + errorMsgHeight, maxBottom)
 				//NOTE: We should only do this if the control's style.bottom == 0
-				scrollBy(0, $wf2.invalidIndicators[0].errorMsg.offsetHeight);
+				if (doScroll && elPos.y + errorMsgHeight > maxBottom) {
+					
+					scrollBy(0, errorMsgHeight );
+				}
 			}
 		}
 		
 	},
 	
 	controlCheckValidity : function(){
-		$wf2.controlCheckValidityOfElement(this);
+		return $wf2.controlCheckValidityOfElement(this);
 		
 	},
 	
@@ -1617,9 +683,10 @@ $wf2 = {
 			}
 		}
 		catch(err){
+			var myErr = err;
 			//throw exception within setTimeout so that the current execution will not be aborted
 			setTimeout(function(){
-				throw err;
+				throw myErr;
 			}, 0);
 		}
 
@@ -1680,17 +747,19 @@ $wf2 = {
 	getOriginalAttrNode: function (node, attrName) {
 		var r;
 		
-		var dataSetItemName = attrName + 'AttrNode';
+		/* var dataSetItemName = attrName + 'AttrNode';
 		
 		if ($wf2.getDatasetItem(node, dataSetItemName) == null) {
 			r = $wf2.copyOf(node.getAttributeNode(attrName));
-			$wf2.setDatasetItem(node, dataSetItemName, r);
+			$wf2.setDatasetItem(node, dataSetItemName, r.value);
 		} else {
 			r = $wf2.getDatasetItem(node, dataSetItemName);
 			if (r == 'null') {
 				r = null;
 			}
-		}
+		} */
+		
+		r = $wf2.copyOf(node.getAttributeNode(attrName));
 		
 		return r;
 	},
@@ -1699,26 +768,36 @@ $wf2 = {
 	updateValidityState : function(node){
 		//if(node.form && node.form[node.name] && node.form[node.name].wf2HasInvalidIndicator)
 		//	return;
+		var type = (node.getAttribute('type') ? node.getAttribute('type').toLowerCase() : node.type);
+		// for range, we need to make sure this doesn't run
+		if (type == 'range' && node.type == 'range') {
+			return;
+		}
+		
 		
 		var minAttrNode, maxAttrNode, valueAttrNode;
 		
 		minAttrNode = $wf2.getOriginalAttrNode(node, 'min');
 		maxAttrNode = $wf2.getOriginalAttrNode(node, 'max');
+		stepAttrNode = $wf2.getOriginalAttrNode(node, 'step');
 		valueAttrNode = $wf2.getOriginalAttrNode(node, 'value');
-
+		
+		
 		node.min = undefined; //wf2Min
 		node.max = undefined; //wf2Max
 		node.step = undefined; //wf2Step
 		
+		// only do this if node.validity is set, or Opera will complain.
+		if (!node.validity) {
+			node.validity = $wf2.createValidityState();
+		}
 		
-		
-		node.validity = $wf2.createValidityState();
 		node.validity.customError = !!node.validationMessage;
 		
 		//var type = node.type ? node.type.toLowerCase() : 'text';
 		//var type = (node.type ? node.getAttribute('type').toLowerCase() :
 		//                       (node.nodeName.toLowerCase() == 'input' ? 'text' : ''));
-		var type = (node.getAttribute('type') ? node.getAttribute('type').toLowerCase() : node.type);
+		
 		var isTimeRelated = (type == 'datetime' || type == 'datetime-local' || type == 'time'); //datetime, datetime-local, time
 		var isDateRelated = (type == 'date' || type == 'month' || type == 'week'); //date, month, week
 		var isNumberRelated = (type == 'number' || type == 'range'); //number, range
@@ -1748,22 +827,37 @@ $wf2 = {
 		
 		if(type == 'range'){
 			//For this type...min defaults to 0...and value defaults to the min value.
+			
 			node.min = (minAttrNode && $wf2.numberRegExp.test(minAttrNode.value)) ? Number(minAttrNode.value) : 0;
+			node.max = (maxAttrNode && $wf2.numberRegExp.test(maxAttrNode.value)) ? Number(maxAttrNode.value) : 0;
 			if((!valueAttrNode || !valueAttrNode.specified) && node.value === '' && !node.wf2ValueProvided){ //(!valueAttrNode || !valueAttrNode.specified) && 
 				node.setAttribute('value', node.min);
 				node.value = node.min;
 				node.wf2ValueProvided = true;
 			}
+			
+			return;
 		}
 		
-		node.wf2Value = node.value;
+		if ($wf2.css.isMemberOfClass(node, 'html5-hasPlaceholderText')) {
+			node.wf2Value = '';
+		} else {
+			node.wf2Value = node.value;
+		}
+		//console.log("changing:", node.value, ", " , node.wf2Value)
 
 		//valueMissing -- The control has the required attribute set but it has not been satisfied.
 		//The required attribute applies to all form controls except controls with the type hidden,
 		//   image inputs, buttons (submit, move-up, etc), and select and output elements. For
 		//   disabled or readonly controls, the attribute has no effect.
 		var type = (node.getAttribute('type') ? node.getAttribute('type').toLowerCase() : node.type);
-		node.willValidate = !(/(hidden|button|reset|add|remove|move-up|move-down)/.test(type) || !node.name || node.disabled);
+		
+		// do this only when node.willValidate doesn't exist or Opera will complain
+		try {
+			node.willValidate = !(/(hidden|button|reset|add|remove|move-up|move-down)/.test(type) || !node.name || node.disabled);
+		} catch (ex) {
+			// do nothing.
+		}
 		if(doRequiredCheck && node.willValidate){
 			//For checkboxes, the required  attribute shall only be satisfied when one or more of
 			//  the checkboxes with that name in that form are checked.
@@ -1805,13 +899,13 @@ $wf2 = {
 				//For other controls, any non-empty value shall satisfy the required condition,
 				//   including a simple whitespace character.
 				//else
-					node.validity.valueMissing = (node.value == '');
+					node.validity.valueMissing = (node.wf2Value == '');
 			}
 			//if(node.options ? node.selectedIndex == -1 : node.value === '')
 			//	node.validity.valueMissing = true;
 			//
 		}
-		if(!node.validity.valueMissing && node.value){
+		if(!node.validity.valueMissing && node.wf2Value){
 			//patternMismatch -- The value of the control with a pattern attribute doesn't match the pattern. 
 			//   If the control is empty, this flag must not be set.
 			//If the pattern attribute is present but empty, it doesn't match any value, and thus the
@@ -1828,20 +922,21 @@ $wf2 = {
 				//When the pattern is not a valid regular expression, it is ignored for the purposes of
 				//   validation, as if it wasn't specified.
 				if(rePattern)
-					node.validity.patternMismatch = !rePattern.test(node.value);
+					node.validity.patternMismatch = !rePattern.test(node.wf2Value);
 			}
 			
 			//typeMismatch -- The data entered does not match the type of the control. For example, if the UA 
 			//   allows uninterpreted arbitrary text entry for month controls, and the user has entered SEP02, 
 			//   then this flag would be set. This code is also used when the selected file in a file upload 
 			//   control does not have an appropriate MIME type. If the control is empty, this flag must not be set.
-			if(isDateRelated || isTimeRelated)
-				node.validity.typeMismatch = ((node.wf2Value = $wf2.parseISO8601(node.value, type)) == null);
-			else {
+			if(isDateRelated || isTimeRelated) {
+				//node.validity.typeMismatch = ((node.value = $wf2.parseISO8601(node.wf2Value, type)) == null);
+				//node.wf2Value = node.value;
+			} else {
 				switch(type){
 					case 'number':
 					case 'range':
-						node.validity.typeMismatch = !$wf2.numberRegExp.test(node.value);
+						node.validity.typeMismatch = !$wf2.numberRegExp.test(node.wf2Value);
 	//						if(!node.validity.typeMismatch && node.getAttribute("step") != 'any'){
 	//							if(node.step == undefined)
 	//								node.step = 1;
@@ -1855,7 +950,7 @@ $wf2 = {
 						//   subtoken everywhere except in the quoted-string subtoken. UAs could, for example, offer
 						//   e-mail addresses from the user's address book. (See below for notes on IDN.)
 						//http://www.ietf.org/rfc/rfc2822						
-						node.validity.typeMismatch = !$wf2.emailRegExp.test(node.value);
+						node.validity.typeMismatch = !$wf2.emailRegExp.test(node.wf2Value);
 						break;
 					case 'url':
 						//An IRI, as defined by [RFC3987] (the IRI token, defined in RFC 3987 section 2.2). UAs could,
@@ -1864,7 +959,7 @@ $wf2 = {
 						//   generally felt authors are more familiar with the term "URL" than the other, more technically
 						//   correct terms.
 						//http://www.ietf.org/rfc/rfc3987
-						node.validity.typeMismatch = !$wf2.urlRegExp.test(node.value);
+						node.validity.typeMismatch = !$wf2.urlRegExp.test(node.wf2Value);
 						break;
 				}
 			}
@@ -1885,6 +980,8 @@ $wf2 = {
 						if(type == 'range'){
 							//For this type...max defaults to 100
 							node.max = (maxAttrNode && $wf2.numberRegExp.test(maxAttrNode.value)) ? Number(maxAttrNode.value) : 100;
+							
+							
 							//node.min is set at the beginning of this function so that the min value can be set as the default value
 						}
 						else {
@@ -1892,9 +989,13 @@ $wf2 = {
 								node.min = Number(minAttrNode.value);
 							if(maxAttrNode && $wf2.numberRegExp.test(maxAttrNode.value))
 								node.max = Number(maxAttrNode.value);
+							if(stepAttrNode && $wf2.numberRegExp.test(stepAttrNode.value))
+								node.step = Number(stepAttrNode.value);
 						}
-						node.validity.rangeUnderflow = (node.min != undefined && Number(node.value) < node.min);
-						node.validity.rangeOverflow  = (node.max != undefined && Number(node.value) > node.max);
+						node.validity.rangeUnderflow = (node.min != undefined && Number(node.wf2Value) < node.min);
+						node.validity.rangeOverflow  = (node.max != undefined && Number(node.wf2Value) > node.max);
+						node.validity.stepMismatch = !$wf2.isValidNumber(node);
+						//console.log('first: ', node.validity.stepMismatch, ',', node.getAttribute('type'))
 					}
 					//For file types it must be a sequence of digits 0-9, treated as a base ten integer.
 					else if(type == 'file'){
@@ -1928,12 +1029,15 @@ $wf2 = {
 					}
 				}
 				//The step attribute controls the precision allowed for the date-related, time-related, and numeric types.
-				if(doCheckPrecision && !node.validity.rangeUnderflow && !node.validity.rangeOverflow){
+				
+				//Note: webforms2 as of March 6, 2012 does not support step for time related inputs.  Will revisit later.
+				if(!(isDateRelated || isTimeRelated) && doCheckPrecision && !node.validity.rangeUnderflow && !node.validity.rangeOverflow){
 					//stepMismatch -- The value is not one of the values allowed by the step attribute, and the UA will 
 					//   not be rounding the value for submission. Empty values and values that caused the typeMismatch 
 					//   flag to be set must not cause this flag to be set.
 					
 					var stepAttrNode = $wf2.getOriginalAttrNode(node, 'step'); //node.getAttributeNode('step');
+					
 					if(!stepAttrNode){
 						//The step attribute [for types datetime, datetime-local, and time] ... defaulting to 60 (one minute).
 						//For time controls, the value of the step attribute is in seconds, although it may be a fractional
@@ -1975,9 +1079,9 @@ $wf2 = {
 						//   and for time controls is 00:00.
 						var _step = node.step;
 						if(type == 'month' && node.wf2StepDatum && node.wf2StepDatum.getUTCFullYear){
-							var month1 = node.wf2StepDatum.getUTCFullYear()*12 + node.wf2StepDatum.getUTCMonth();
-							var month2 = node.wf2Value.getUTCFullYear()*12 + node.wf2Value.getUTCMonth();
-							node.validity.stepMismatch = (month2 - month1)%_step != 0;
+							//var month1 = node.wf2StepDatum.getUTCFullYear()*12 + node.wf2StepDatum.getUTCMonth();
+							//var month2 = node.wf2Value.getUTCFullYear()*12 + node.wf2Value.getUTCMonth();
+							//node.validity.stepMismatch = (month2 - month1)%_step != 0;
 						}
 						else {
 							switch(type){
@@ -2007,13 +1111,13 @@ $wf2 = {
 			//   and the value of the control doesn't exactly match the control's default value. 
 			//[The maxlength] attribute must not affect the initial value (the DOM defaultValue attribute). It must only
 			//   affect what the user may enter and whether a validity error is flagged during validation.
-			if(doMaxLengthCheck && node.maxLength >= 0 && node.value != node.defaultValue){
+			if(doMaxLengthCheck && node.maxLength >= 0 && node.wf2Value != node.defaultValue){
 				//A newline in a textarea's value must count as two code points for maxlength processing (because
 				//   newlines in textareas are submitted as U+000D U+000A). [[NOT IMPLEMENTED: This includes the
 				//   implied newlines that are added for submission when the wrap attribute has the value hard.]]
 				//var matches = node.value.match(/((?<!\x0D|^)\x0A|\x0D(?!^\x0A|$))/g); //no negative lookbehind
 				var shortNewlines = 0;
-				var v = node.value;
+				var v = node.wf2Value;
 				node.wf2ValueLength = v.length;
 				for(var i = 1; i < v.length; i++){
 					if(v[i] === "\x0A" && v[i-1] !== "\x0D" || v[i] == "\x0D" && (v[i+1] && v[i+1] !== "\x0A"))
@@ -2024,12 +1128,29 @@ $wf2 = {
 				//   has more than the specified number of code points and the value doesn't match the control's default value.
 				node.validity.tooLong = node.wf2ValueLength > node.maxLength;
 			}
+		} else {
+			if(minAttrNode && $wf2.numberRegExp.test(minAttrNode.value))
+				node.min = Number(minAttrNode.value);
+			if(maxAttrNode && $wf2.numberRegExp.test(maxAttrNode.value))
+				node.max = Number(maxAttrNode.value);
+			if(stepAttrNode && $wf2.numberRegExp.test(stepAttrNode.value))
+				node.step = Number(stepAttrNode.value);
 		}
 
 		//customError -- The control was marked invalid from script. See the definition of the setCustomValiditiy() method.
-		
+		//console.log('second: ', node.validity.stepMismatch)
 		node.validity.valid = !$wf2.hasInvalidState(node.validity);
-		
+		if (node.validity.valid) {
+			$wf2.css.removeClass(node, 'wf2_invalid');
+			$wf2.css.addClass(node, 'wf2_valid');
+			//node.className = node.className.replace(/\s?wf2_invalid/g, "") + ' wf2_valid';
+			//console.log('valid: ', node.className)
+		} else { 
+			$wf2.css.removeClass(node, 'wf2_valid');
+			$wf2.css.addClass(node, 'wf2_invalid');
+			//node.className = node.className.replace(/\s?wf2_valid/g, "") + ' wf2_invalid';
+			//console.log('not valid: ', node.className, 'value:', node.value, 'wtfValue:', node.wf2Value)
+		}
 		//This is now done onmousedown or onkeydown, just as Opera does
 		//if(node.validity.valid){
 		//	node.className = node.className.replace(/\s*\binvalid\b\s*/g, " "); //substitute for :invalid pseudo class
@@ -2042,12 +1163,20 @@ $wf2 = {
 		//		errMsg.parentNode.removeChild(errMsg);
 		//}
 	},
+	
+	// checks to see if a number node has a value that is valid.
+	isValidNumber: function (node) {
+		//console.log(node.wf2Value + ", " + node.min + ", " + node.max + ", " + node.step);
+		var n = (parseFloat(node.wf2Value) - parseFloat(node.min))/parseFloat(node.step);
+		//console.log('!' , n == parseInt(n))
+		return (n == parseInt(n));
+	},
 
 	applyValidityInterface : function(node){
 		
 		/* Webkit browsers need this */
-		if ($wf2.hasBadImplementation) {
-			
+		if (!$wf2.hasNativeBubbles || (node.form && $wf2.getAttributeValue(node.form, 'data-webforms2-force-js-validation') == 'true')) {
+			console.log(node.name)
 			if (node.type == 'submit' || node.type == 'button') {
 				
 				node.formNoValidate=true;
@@ -2055,18 +1184,22 @@ $wf2 = {
 			}
 		}
 	
-		/* ZOLTAN made a change here to ensure Google's unfinished native implementation is not used. */
+		/* Made a change here to ensure Google's unfinished native implementation is not used. */
 		else if((node.validity && node.validity.typeMismatch !== undefined)) {//MSIE needs the second test for some reason
 			//	console.log('bad implementation!! ' + node.id);
 			
 			return node;
 		}
+		
+		try {
 		node.validationMessage = "";
 		
 		//ValidityState interface
 		node.validity = $wf2.createValidityState();
 		node.willValidate = true;
-		
+		} catch (ex) {
+			// do nothing.
+		}
 		var nodeName = node.nodeName.toLowerCase();
 		if(nodeName == 'button' || nodeName == 'fieldset'){
 			node.setCustomValidity = function(error){
@@ -2090,39 +1223,58 @@ $wf2 = {
 		//var type = (node.type ? node.type.toLowerCase() : (nodeName == 'input' ? 'text' : ''));
 		var type = (node.getAttribute('type') ? node.getAttribute('type').toLowerCase() : node.type);
 		
-		if(/(hidden|button|reset|add|remove|move-up|move-down)/.test(type) || !node.name || node.disabled)
-			node.willValidate = false;
+		if(/(hidden|button|reset|add|remove|move-up|move-down)/.test(type) || !node.name || node.disabled) {
+			try {
+				node.willValidate = false;
+			} catch (ex) {
+				// do nothing.
+			}
+		}
 		else if(window.RepetitionElement) {
 			var parent = node;
 			while(parent = parent.parentNode){
 				if(parent.repetitionType == RepetitionElement.REPETITION_TEMPLATE){
-					node.willValidate = false;
+					try {
+						node.willValidate = false;
+					} catch (ex) {
+						// do nothing.
+					}
 					break;
 				}
 			}
 		}
 		
-		//var handler = function(event){
-		//	return (event.currentTarget || event.srcElement)._updateValidityState();
-		//};
 		
-		////attempt to check validity live
-		//if(document.addEventListener){
-		//	node.addEventListener('change', handler, false);
-		//	node.addEventListener('blur', handler, false);
-		//	node.addEventListener('keyup', handler, false);
-		//}
-		//else if(window.attachEvent){
-		//	node.attachEvent('onchange', handler);
-		//	node.attachEvent('onblur', handler);
-		//	node.attachEvent('onkeyup', handler);
-		//}
-		//else {
-		//
-		//}
+		
+		var handler = function(event){
+			return $wf2.updateValidityState(event.currentTarget || event.srcElement);
+		};
+		
+		//attempt to check validity live
+		if(document.addEventListener){
+			node.addEventListener('change', handler, false);
+			node.addEventListener('blur', handler, false);
+			node.addEventListener('keyup', handler, false);
+		}
+		else if(window.attachEvent){
+			node.attachEvent('onchange', handler);
+			node.attachEvent('onblur', handler);
+			node.attachEvent('onkeyup', handler);
+		}
+		else {
+		
+		}
 		
 		return node;
 	},
+	
+	/* updateValidityState: function (node) {
+		if (node.checkValidity()){
+			node.className = node.className.replace(/\s?wf2_invalid/, "");
+		} else {
+			node.className += ' wf2_invalid';
+		}
+	}, */
 
 	onsubmitValidityHandler : function(event){
 		var frm = event.currentTarget || event.srcElement;
@@ -2134,7 +1286,7 @@ $wf2 = {
 			$wf2.callBeforeValidation[i](event);
 		}
 		
-		/* ZOLTAN */
+		
 		if(!frm.checkValidity()){
 			if(event.preventDefault)
 				event.preventDefault();
@@ -2207,13 +1359,13 @@ $wf2 = {
 	},
 
 	invalidMessages : {
-		valueMissing   : 'A value must be supplied or selected.',
-		typeMismatch   : 'The value is invalid for %s type.',
+		valueMissing   : 'Please fill out this field.',
+		typeMismatch   : 'Please enter a valid %s.',
 		rangeUnderflow : 'The value must be equal to or greater than %s.',
 		rangeOverflow  : 'The value must be equal to or less than %s.',
 		stepMismatch   : 'The value has a step mismatch; it must be a certain number multiples of %s from %s.',
 		tooLong        : 'The value is too long. The field may have a maximum of %s characters but you supplied %s. Note that each line-break counts as two characters.',
-		patternMismatch: 'The value is not in the format required.'
+		patternMismatch: 'Please match the requested format.'
 	},
 	
 	valueToWF2Type : function(value, type){
@@ -2233,7 +1385,14 @@ $wf2 = {
 	addInvalidIndicator : function(target){
 		//show contextual help message
 		var msg = document.createElement('div');
-		msg.className = 'wf2_errorMsg';
+		msg.className = 'wf2_errorMsg wf2_fromForm_' + (target.form.id || target.form.name);
+		
+		/* Let's put in a container in here so IE9- can put a gradient filter in here. */
+		var msgContainer = document.createElement('div');
+		msgContainer.className = 'wf2_errorMsgContainer';
+		msg.appendChild(msgContainer);
+		
+		
 		//msg.title = "Close";
 		msg.id = (target.id || target.name) + '_wf2_errorMsg'; //QUESTION: does this work for MSIE?
 		msg.onmousedown = function(){
@@ -2245,27 +1404,29 @@ $wf2 = {
 		var isDateTimeRelated = (type == 'datetime' || type == 'datetime-local' || type == 'time' || type == 'date' || type == 'month' || type == 'week');
 
 		var ol = document.createElement('ol');
-		if(target.validity.valueMissing)
-			ol.appendChild($wf2.createLI($wf2.invalidMessages.valueMissing));
-		if(target.validity.typeMismatch)
-			ol.appendChild($wf2.createLI($wf2.invalidMessages.typeMismatch.replace(/%s/, type)));
-		if(target.validity.rangeUnderflow)
-			ol.appendChild($wf2.createLI($wf2.invalidMessages.rangeUnderflow.replace(/%s/, $wf2.valueToWF2Type(target.min, type))));
-		if(target.validity.rangeOverflow)
-			ol.appendChild($wf2.createLI($wf2.invalidMessages.rangeOverflow.replace(/%s/, $wf2.valueToWF2Type(target.max, type))));
-		if(target.validity.stepMismatch)
-			ol.appendChild($wf2.createLI($wf2.invalidMessages.stepMismatch.replace(/%s/, target.step + ($wf2.stepUnits[type] ? ' ' + $wf2.stepUnits[type] + '(s)' : '')).replace(/%s/, $wf2.valueToWF2Type(target.wf2StepDatum, type))));
-		if(target.validity.tooLong)
-			ol.appendChild($wf2.createLI($wf2.invalidMessages.tooLong.replace(/%s/, target.maxLength).replace(/%s/, target.wf2ValueLength ? target.wf2ValueLength : target.value.length)));
-		if(target.validity.patternMismatch)
-			ol.appendChild($wf2.createLI($wf2.invalidMessages.patternMismatch.replace(/%s/, target.title ? target.title : ' "' + target.getAttribute('pattern') + '"')));
-		if(target.validity.customError)
+		if(target.validity.customError) {
 			ol.appendChild($wf2.createLI(target.validationMessage));
+		} else {
+			if(target.validity.valueMissing)
+				ol.appendChild($wf2.createLI($wf2.invalidMessages.valueMissing));
+			if(target.validity.typeMismatch)
+				ol.appendChild($wf2.createLI($wf2.invalidMessages.typeMismatch.replace(/%s/, type)));
+			if(target.validity.rangeUnderflow)
+				ol.appendChild($wf2.createLI($wf2.invalidMessages.rangeUnderflow.replace(/%s/, $wf2.valueToWF2Type(target.min, type))));
+			if(target.validity.rangeOverflow)
+				ol.appendChild($wf2.createLI($wf2.invalidMessages.rangeOverflow.replace(/%s/, $wf2.valueToWF2Type(target.max, type))));
+			if(target.validity.stepMismatch)
+				ol.appendChild($wf2.createLI($wf2.invalidMessages.stepMismatch.replace(/%s/, target.step + ($wf2.stepUnits[type] ? ' ' + $wf2.stepUnits[type] + '(s)' : '')).replace(/%s/, $wf2.valueToWF2Type(target.wf2StepDatum, type))));
+			if(target.validity.tooLong)
+				ol.appendChild($wf2.createLI($wf2.invalidMessages.tooLong.replace(/%s/, target.maxLength).replace(/%s/, target.wf2ValueLength ? target.wf2ValueLength : target.value.length)));
+			if(target.validity.patternMismatch)
+				ol.appendChild($wf2.createLI($wf2.invalidMessages.patternMismatch.replace(/%s/, target.title ? target.title : ' "' + target.getAttribute('pattern') + '"')));
+		}
 		
 		if(ol.childNodes.length == 1)
 			ol.className = 'single';
 		
-		msg.appendChild(ol);
+		msgContainer.appendChild(ol);
 		////remove existing error message
 		//if(document.getElementById(msg.id))
 		//	document.documentElement.removeChild(document.getElementById(msg.id));
@@ -2294,15 +1455,13 @@ $wf2 = {
 		
 		var top = left = 0;
 		var cur = el;
-		if(cur && cur.offsetParent){
-			left = cur.offsetLeft;
-			top = cur.offsetTop;
-			while(cur = cur.offsetParent){
-				left += cur.offsetLeft;
-				top += cur.offsetTop;
-			}
-			top += el.offsetHeight;
-		}
+		
+		
+		var s = $wf2.css.getAbsoluteCoords(el);	
+		top = s.y + el.offsetHeight;
+		left = s.x;	
+		
+		
 		msg.style.top = top + 'px';
 		msg.style.left = left + 'px';
 		
@@ -2314,23 +1473,34 @@ $wf2 = {
 		//	target.form[target.name].wf2HasInvalidIndicator = true;
 		//	console.info('set')
 		//}
-		if(!target.className.match(/\bwf2_invalid\b/))
-			target.className += " wf2_invalid";
+		/* if(!target.className.match(/\bwf2_invalid\b/))
+			target.className += " wf2_invalid"; */
+		$wf2.css.addClass(target, 'wf2_invalid');
 			
 		if($wf2.indicatorIntervalId == null){
 			//var i = $wf2.invalidIndicators.length - 1;
 			$wf2.indicatorIntervalId = setInterval(function(){
 				var invalidIndicator;
 				for(var i = 0; invalidIndicator = $wf2.invalidIndicators[i]; i++){
+					
+					if (!$wf2.css.isMemberOfClass(invalidIndicator.target, 'wf2_invalid')) {
+						$wf2.css.addClass(invalidIndicator.target, 'wf2_invalid')
+					} else {
+						$wf2.css.removeClass(invalidIndicator.target, 'wf2_invalid');
+					}
+					
+					
+					/* 
 					if(!invalidIndicator.target.className.match(/\bwf2_invalid\b/)){
 						invalidIndicator.target.className += " wf2_invalid";
 					}
 					else {
 						invalidIndicator.target.className = invalidIndicator.target.className.replace(/\s?wf2_invalid/, "");
-					}
+					} */
 				}
 				
 			}, 500);
+			return;
 			// call routines other libraries have set to be run before
 			// validation.
 			setTimeout(function() {
@@ -2355,9 +1525,9 @@ $wf2 = {
 				invalidIndicator.errorMsg.parentNode.removeChild(invalidIndicator.errorMsg);
 			//clearInterval(insts[0].intervalId);
 			var target = invalidIndicator.target;
-			//if(target.form && target.form[target.name])
-			//	target.form[target.name].wf2HasInvalidIndicator = false;
-			target.className = target.className.replace(/\s?wf2_invalid/, ""); //([^\b]\s)?
+			
+			// Removed
+			// target.className = target.className.replace(/\s?wf2_invalid/, ""); //([^\b]\s)?
 			$wf2.invalidIndicators.shift();
 		}
 		
@@ -2422,6 +1592,7 @@ $wf2 = {
 				//	  : document.createElement(node.nodeName);
 						
 				for(i = 0; attr = node.attributes[i]; i++){
+					
 					//MSIE ISSUE: Custom attributes specified do not have .specified property set to true?
 					//ISSUE: VALUE IS REPEATED IN MSIE WHEN VALUE ATTRIBUTE SET?
 					//if(attr.specified || node.getAttribute(attr.nodeName)) //$wf2.cloneNode_customAttrs[attr.nodeName] || 
@@ -2435,6 +1606,7 @@ $wf2 = {
 								(!isTemplate || (rtNestedDepth > 1 || !$wf2.cloneNode_rtEventHandlerAttrs[attr.name])) // && 
 							))
 					{
+						
 						//MSIE BUG: when button[type=add|remove|move-up|move-down], then (attr.nodeValue and attr.value == 'button') but node.getAttribute(attr.nodeName) == 'add|remove|move-up|move-down' (as desired)
 						
 						//clone and process an event handler property (attribute);
@@ -2450,6 +1622,7 @@ $wf2 = {
 							attrValue = (processAttr ? processAttr(attrValue) : attrValue);
 							clone.setAttribute(attr.name, attrValue);
 						}
+						//console.log(StringHelpers.sprintf("AFTER attr: %s val: %s (%s)", attr.name, attr.value, processAttr(attrValue)))
 					}
 				}
 				//MSIE BUG: setAttribute('class') creates duplicate value attribute in MSIE; 
@@ -2917,91 +2090,234 @@ $wf2 = {
 		//};
 	
 		return err;
+	},
+	
+	css: new function () {
+		var me = this;
+		
+		var blankRe = new RegExp('\\s');
+
+		/**
+		 * Generates a regular expression string that can be used to detect a class name
+		 * in a tag's class attribute.  It is used by a few methods, so I 
+		 * centralized it.
+		 * 
+		 * @param {String} className - a name of a CSS class.
+		 */
+		
+		function getClassReString(className) {
+			return '\\s'+className+'\\s|^' + className + '\\s|\\s' + className + '$|' + '^' + className +'$';
+		}
+		
+		function getClassPrefixReString(className) {
+			return '\\s'+className+'-[0-9a-zA-Z_]+\\s|^' + className + '[0-9a-zA-Z_]+\\s|\\s' + className + '[0-9a-zA-Z_]+$|' + '^' + className +'[0-9a-zA-Z_]+$';
+		}
+		
+		
+		/**
+		 * Make an HTML object be a member of a certain class.
+		 * 
+		 * @param {Object} obj - an HTML object
+		 * @param {String} className - a CSS class name.
+		 */
+		me.addClass = function (obj, className) {
+			
+			if (blankRe.test(className)) {
+				return;
+			}
+			
+			// only add class if the object is not a member of it yet.
+			if (!me.isMemberOfClass(obj, className)) {
+				obj.className += " " + className;
+			}
+			
+		}
+		
+		/**
+		 * Make an HTML object *not* be a member of a certain class.
+		 * 
+		 * @param {Object} obj - an HTML object
+		 * @param {Object} className - a CSS class name.
+		 */
+		me.removeClass = function (obj, className) {
+			
+			if (blankRe.test(className)) {
+				return; 
+			}
+			
+			
+			var re = new RegExp(getClassReString(className) , "g");
+			
+			var oldClassName = obj.className;
+		
+		
+			if (obj.className) {
+				obj.className = oldClassName.replace(re, ' ');
+			}
+		
+			
+		}
+		
+		/**
+		 * Determines if an HTML object is a member of a specific class.
+		 * @param {Object} obj - an HTML object.
+		 * @param {Object} className - the CSS class name.
+		 */
+		me.isMemberOfClass = function (obj, className) {
+			
+			if (blankRe.test(className))
+				return false;
+			
+			var re = new RegExp(getClassReString(className) , "g");
+		
+			return (re.test(obj.className));
+		
+		
+		}
+		
+		me.getAbsoluteCoords = function(obj) {
+		
+			var curleft = obj.offsetLeft;
+			var curtop = obj.offsetTop;
+			
+			/*
+			 * IE and Gecko
+			 */
+			if (obj.getBoundingClientRect) {
+				var temp = obj.getBoundingClientRect();
+				
+				curleft = temp.left + me.getScrollX();
+				curtop = temp.top + me.getScrollY();
+			} else {
+			
+				/* Everything else must do the quirkmode.org way */
+			
+				if (obj.offsetParent) {
+				
+					while (obj = obj.offsetParent) {
+						curleft += obj.offsetLeft - obj.scrollLeft;
+						curtop += obj.offsetTop - obj.scrollTop;
+					}
+				}
+			}
+			return {
+				x: curleft,
+				y: curtop
+			};
+		}
+		
+		/**
+		 * Get the the amount of pixels the window has been scrolled from the top.  If there is no
+		 * vertical scrollbar, this function return 0.
+		 *
+		 * @return {int} - the amount of pixels the window has been scrolled to the right, in pixels.
+		 */
+		me.getScrollX = function (myWindow)
+		{
+			var myDocument;
+			
+			if (myWindow) {
+				myDocument = myWindow.document;
+			} else {
+				myWindow = window;
+				myDocument = document;
+			}
+			
+			// All except that I know of except IE
+			if (myWindow.pageXOffset != null) {
+				return myWindow.pageXOffset;
+			// IE 6.x strict
+			} else if (myDocument.documentElement != null 
+					&& myDocument.documentElement.scrollLeft !="0px" 
+						&& myDocument.documentElement.scrollLeft !=0)  {
+				return myDocument.documentElement.scrollLeft;
+			// all other IE
+			} else if (myDocument.body != null && 
+				myDocument.body.scrollLeft != null) {
+				return myDocument.body.scrollLeft;
+			// if for some reason none of the above work, this should.
+			} else if (myWindow.scrollX != null) {
+				return myWindow.scrollX;
+			} else {
+				return null;
+			}
+		}
+		
+		/**
+		 * Get the the amount of pixels the window has been scrolled to the right.  If there is no
+		 * horizontal scrollbar, this function return 0.
+		 * 
+		 * @return {int} - the amount of pixels the window has been scrolled to the right, in pixels.
+		 */
+		me.getScrollY = function(myWindow)
+		{
+			var myDocument;
+			
+			if (myWindow) {
+				myDocument = myWindow.document;
+			} else {
+				myWindow = window;
+				myDocument = document;
+			}
+			
+			// All except that I know of except IE
+			if (myWindow.pageYOffset != null) {
+				return myWindow.pageYOffset;
+			// IE 6.x strict
+			} else if (myDocument.documentElement != null
+					&& myDocument.documentElement.scrollTop !="0px" 
+						&& myDocument.documentElement.scrollTop !=0) {
+				return myDocument.documentElement.scrollTop;
+			// all other IE
+			} else if (myDocument.body && myDocument.body.scrollTop != null) { 
+				return myDocument.body.scrollTop;
+			// if for some reason none of the above work, this should.
+			} else if (myWindow.scrollY != null) { 
+				return myWindow.scrollY;
+			} else {
+				return null;
+			}
+		}
+		
+		/**
+		 * gets the current window's height.  
+		 * 
+		 * @author Peter-Paul Koch - http://www.quirksmode.org
+		 * @license see http://www.quirksmode.org/about/copyright.html
+		 * @return {int} - the window's height in pixels.
+		 */
+		me.getWindowHeight = function  (theWindow)
+		{
+			if (!theWindow) {
+				theWindow = window;
+			}
+				
+			var theDocument = theWindow.document;
+			
+			// all except IE
+			if (theWindow.innerHeight != null) {
+				return theWindow.innerHeight;
+			// IE6 Strict mode
+			} else if (theDocument.documentElement && 
+					theDocument.documentElement.clientHeight ) {
+				return theDocument.documentElement.clientHeight;
+			// IE strictly less than 6
+			} else if (theDocument.body != null) {
+				return theDocument.body.clientHeight;
+			} else {
+				return null;
+			}
+		}
 	}
 }; //End $wf2 = {
 
 
-/*##############################################################################################
- # Section: Repetition Model Definitions
- ##############################################################################################*/
 
-var RepetitionElement = {
-	REPETITION_NONE:0,
-	REPETITION_TEMPLATE:1,
-	REPETITION_BLOCK:2
-};
-
-var RepetitionEvent = {
-	//the following takes a UIEvent and adds the required properties for a RepetitionEvent
-	_upgradeEvent : function(){
-		this.initRepetitionEvent = RepetitionEvent.initRepetitionEvent;
-		this.initRepetitionEventNS = RepetitionEvent.initRepetitionEventNS;
-	},
-	initRepetitionEvent : function(typeArg, canBubbleArg, cancelableArg, elementArg){
-		if(this.initEvent)
-			this.initEvent(typeArg, canBubbleArg, cancelableArg);
-		else { //manually initialize event (i.e., for MSIE)
-			this.type = typeArg;
-	//		switch(typeArg.toLowerCase()){
-	//			case 'added':
-	//				this.type = 'add';
-	//				break;
-	//			case 'removed':
-	//				this.type = 'remove';
-	//				break;
-	//			case 'moved':
-	//				this.type = 'move';
-	//				break;
-	//		}
-			//this.srcElement = elementArg.repetitionTemplate;
-			//this.cancelBubble = false;
-			//this.cancelable = cancelableArg;
-			//this.returnValue = false;
-			
-			if(!this.preventDefault)
-			this.preventDefault = function(){
-				this.returnValue = false;
-			};
-			if(!this.stopPropagation)
-			this.stopPropagation = function(){
-				this.cancelBubble = true;
-			};
-		}
-		this.element = elementArg;
-		this.relatedNode = elementArg; //for Opera (deprecated?)
-	},
-	initRepetitionEventNS : function(namespaceURIArg, typeArg, canBubbleArg, cancelableArg, elementArg){
-		throw Error("NOT IMPLEMENTED: RepetitionEvent.initRepetitionEventNS");
-		//this.initEvent(namespaceURIArg, typeArg, canBubbleArg, cancelableArg);
-		//this.element = elementArg;
-		//this.relatedNode = elementArg; //for Opera (deprecated?)
-	}
-};
 
 /*##############################################################################################
  # Change the prototypes of HTML elements
  ##############################################################################################*/
 
-//RepetitionElement interface must be implemented by all elements.
-if(window.Element && Element.prototype){
-	Element.prototype.REPETITION_NONE     = RepetitionElement.REPETITION_NONE;
-	Element.prototype.REPETITION_TEMPLATE = RepetitionElement.REPETITION_TEMPLATE;
-	Element.prototype.REPETITION_BLOCK    = RepetitionElement.REPETITION_BLOCK;
-	
-	Element.prototype.repetitionType      = RepetitionElement.REPETITION_NONE;
-	Element.prototype.repetitionIndex     = 0;
-	Element.prototype.repetitionTemplate  = null; /*readonly*/
-	Element.prototype.repetitionBlocks    = null; /*readonly*/
-
-	Element.prototype.repeatStart = 1;
-	Element.prototype.repeatMin   = 0;
-	Element.prototype.repeatMax   = Number.MAX_VALUE; //Infinity;
-	
-	Element.prototype.addRepetitionBlock        = $wf2.addRepetitionBlock;
-	Element.prototype.addRepetitionBlockByIndex = $wf2.addRepetitionBlockByIndex;
-	Element.prototype.moveRepetitionBlock       = $wf2.moveRepetitionBlock;
-	Element.prototype.removeRepetitionBlock     = $wf2.removeRepetitionBlock;
-}
 
 /*##############################################################################################
  # Set mutation event handlers to automatically add WF2 behaviors
@@ -3111,8 +2427,10 @@ else if(/MSIE/i.test(navigator.userAgent) && !document.addEventListener && windo
 			
 			//See issue #3 <http://code.google.com/p/repetitionmodel/issues/detail?id=3>
 			//Sometimes cssQuery doesn't find all repetition templates from here within this DOMContentLoaded substitute
-			if($wf2.repetitionTemplates.length == 0)
-				$wf2.isInitialized = false;
+			if (window.$wf2Rep) {
+				if($wf2.repetitionTemplates.length == 0)
+					$wf2.isInitialized = false;
+			}
 		}
 	};
 	script = null;
@@ -3135,49 +2453,10 @@ if(!eventSet){
 })();
 } //End If(!document.implementation...
 
-/*##############################################################################################
- # Extensions for existing Web Forms 2.0 Implementations
- ##############################################################################################*/
-else if(document.addEventListener && ($wf2.oldRepetitionEventModelEnabled === undefined || $wf2.oldRepetitionEventModelEnabled)){
-	$wf2.oldRepetitionEventModelEnabled = true;
-	(function(){
-		
-	var deprecatedAttrs = {
-		added   : 'onadd',
-		removed : 'onremove',
-		moved   : 'onmove'
-	};
-	
-	function handleRepetitionEvent(evt){
-		if(!$wf2.oldRepetitionEventModelEnabled)
-			return;
-		if(!evt.element && evt.relatedNode) //Opera uses evt.relatedNode instead of evt.element as the specification dictates
-			evt.element = evt.relatedNode;
-		if(!evt.element || !evt.element.repetitionTemplate)
-			return;
-		
-		var rt = evt.element.repetitionTemplate;
-		var attrName = 'on' + evt.type;
-		
-		//Add support for event handler set with HTML attribute
-		var handlerAttr = rt.getAttribute(attrName) || /* deprecated */ rt.getAttribute(deprecatedAttrs[evt.type]);
-		if(handlerAttr && (!rt[attrName] || typeof rt[attrName] != 'function')) //in MSIE, attribute == property
-			rt[attrName] = new Function('event', handlerAttr);
-		
-		if(evt.element.repetitionTemplate[attrName])
-			evt.element.repetitionTemplate[attrName](evt);
-		else if(evt.element.repetitionTemplate[deprecatedAttrs[evt.type]]) //deprecated
-			evt.element.repetitionTemplate[deprecatedAttrs[evt.type]](evt);
-	}
-	
-	document.addEventListener('added', handleRepetitionEvent, false);
-	document.addEventListener('removed', handleRepetitionEvent, false);
-	document.addEventListener('moved', handleRepetitionEvent, false);
-	
-	})();
-}
+
 
 } //end if(!window.$wf2)
+
 
 
 //if(!window.ValidityState){
@@ -3204,6 +2483,6 @@ else if(document.addEventListener && ($wf2.oldRepetitionEventModelEnabled === un
 	
 //}
 
-//if(!window.HTMLOutputElement){
+//if(!window.HTMLOutputElement){ 
 	
 //}

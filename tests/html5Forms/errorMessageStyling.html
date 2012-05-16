@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+		
+		<link type="text/css" rel="stylesheet" href="css/form.css" />
+		
+		<style type="text/css">
+		<!--
+		
+		/*
+		 * Styling the "Full Name" error message.
+		 */
+		
+		/*
+		 *  The background color of the main box 
+		 */
+		
+		/* Webkit */
+		input[name="fullName"]::-webkit-validation-bubble-message {
+			color: green !important;
+			background: white;
+			border: 1px solid black;
+			padding: 18px;
+			
+		}
+		
+		input[name="fullName"]::-webkit-validation-bubble-icon {
+			display: none;
+		}
+		
+		/* Polyfill */
+		#fullName_wf2_errorMsg {
+			color: green !important;
+			background: white;
+		}
+		
+		/* Needed for IE to get rid of gradient background, or to replace it with another gradient */
+		#fullName_wf2_errorMsg .wf2_errorMsgContainer {
+			filter: none !important;
+		}
+		
+		
+		/*
+		 * Step 2: The arrow
+		 */
+		
+		[name="fullName"]::-webkit-validation-bubble-arrow {
+			background: white;
+		    border: solid black 1px;
+		}
+		
+		/* Polyfill */
+		#fullName_wf2_errorMsg:before {
+			/* By default, the image is 29x15, but you can change it and position it with CSS */
+			background: url('images/whiteValidationPointer.png');
+		}
+		
+		#companyName_wf2_errorMsg {
+			color: yellow !important;
+		}
+		
+		
+		-->
+		</style>
+		<script type="text/javascript" src="../../shared/js/modernizr.com/Modernizr-2.5.3.forms.js">
+		</script>
+		
+		<!-- Needed for Validation --> 
+		<script type="text/javascript" src="../../shared/js/html5Forms.js" data-webforms2-support="validation" data-webforms2-force-js-validation="true">
+		</script>
+		
+		
+		
+		<title>HTML5 placeholder Attribute Test</title>
+		
+		
+		
+	</head>
+	<body id="myExample">
+		<div id="exampleBlurb">
+		<p>
+				This is an example of a HTML5 form which has a different error message style for each of its form <elements class=""></elements>
+					<a href="http://www.useragentman.com/blog/?p=1110">Back to User Agent Man HTML5 Forms article </a>
+			</p>
+		</div>
+		
+		
+		<form  action="http://www.useragentman.com/testForm.php" data-webforms2-force-js-validation="true" >
+			<fieldset>
+				<legend>Personal Information</legend>
+		
+				<p>It is important you fill out <strong>all</strong> of the information in this form.</p>
+				
+			<table class="formTable">
+				<tr>
+					<th>Full Name :</th>
+					<td><input type="text" name="fullName" value="" required="required" placeholder="Required information" 
+						oninvalid="this.setCustomValidity('Yo, Bro! You forgot to fill out this field!')" 
+						onkeydown="this.setCustomValidity('')"/>
+					<div class="description"></div>
+					</td>
+				</tr>
+				
+				<tr>
+					<th>Company Name :</th>
+					<td><input type="text" name="companyName" required="required" value="" 
+						oninvalid="this.setCustomValidity('Don\'t forget this field either, Holmes!')"
+						onkeydown="this.setCustomValidity('')"
+						 />
+					<div class="description"></div>
+					</td>
+				</tr>
+				
+				
+				<tr>
+					<td></td>
+					<td><input type="submit" value="Submit Information"/></td>
+				</tr>
+			</table>
+			</fieldset>
+		</form>
+	</body>
+</html>

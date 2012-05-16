@@ -38,7 +38,7 @@ if (window.navigator) {
 <p>In this example, the input field is declared "required", which means the form cannot be submitted if the field is empty. Instead an error message will be displayed to the user.</p>
 
 <div class="example">
-<form>
+<form action="http://www.useragentman.com/testForm.php">
   <input name="textfield" type="text" required>
   <button type=submit>Submit me</button>
 </form>
@@ -55,7 +55,7 @@ if (window.navigator) {
 <p>This field requires a number between 18 and 99:
 
 <div class="example">
-<form>
+<form action="http://www.useragentman.com/testForm.php">
   Age: <input name="age" type="number" min="18" max="99" required  oninvalid="return true">
   <button type=submit>Submit me</button>
 </form>
@@ -72,7 +72,7 @@ if (window.navigator) {
 <p>Here is a sample form using an assortment of the new validation constraints:</p>
 
 <div class="example">
-<form>
+<form action="http://www.useragentman.com/testForm.php">
   <p><label>Your e-mail address:</label><input name="email" type="email"> (must be an email adress)</p>
   <p><label>Your web page:</label><input name="url" type="uri"> (must be an URI)</p>
   <p><label>Your age:</label><input name="age" type="number" min=18 max=90> (must be between 18 and 90)</p>
@@ -90,7 +90,7 @@ if (window.navigator) {
 <p>Of course, the built-in types and constraints cannot cover every use case. Therefore it is possible to hook custom code into the validation system.
 
 <div class="example">
-<form>
+<form action="http://www.useragentman.com/testForm.php">
 <script>
 function isSquareNumber(num) {
 	return (Math.sqrt(num)!=Math.round(Math.sqrt(num)))

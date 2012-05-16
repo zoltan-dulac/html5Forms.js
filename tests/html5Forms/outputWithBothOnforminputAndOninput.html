@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+		
+		<title>Example of the output tag.</title>
+		
+		<!-- This CSS file is not necessary to use html5Widgets -->
+		<link type="text/css" rel="stylesheet" href="../../shared/css/useragentmanExample.css">
+		<link type="text/css" rel="stylesheet" href="css/form.css" />
+		
+		
+		
+		<!-- What powers html5Widgets -->
+		<script type="text/javascript" src="../../shared/js/modernizr.com/modernizr-1.5.min.js">
+		</script>
+		<script type="text/javascript" src="../../shared/js/html5.js">
+		</script>
+		<script type="text/javascript" src="../../shared/js/Timer.js">
+		</script>
+		<script type="text/javascript" src="../../shared/js/EventHelpers.js">
+		</script>
+		
+		<script type="text/javascript" src="../../shared/js/html5Widgets.js">
+		</script>
+		
+	</head>
+	<body id="myExample" class="html5Widgets-debug">
+    	<div id="exampleBlurb">
+    		<p>The following is an example of using the HTML5 <code>output</code> tag with both 
+			an <code>onforminput</code> event added to it as well as a <code>oninput</code> tag added
+			to it's form.   <a href="http://www.useragentman.com/blog/?p=3174">Back to the User Agent Man <code>oninput</code> article</a>.</p>
+    	</div>
+		
+        <form method="get" action="http://www.useragentman.com/testForm.php" 
+			oninput="document.getElementById('output').innerHTML = 'oninput fired at ' + new Date().getTime();">
+        		
+			<fieldset>
+				<legend>Onforminput and Oninput test</legend>
+			
+				<p>Enter in a value below.  The output field will tell you which
+				event(s) were fired as a result.  It is best not to have both <code>onforminput</code>
+				and <code>oninput</code> events on the same page (the former is deprecated anyways).</p>
+	            <table class="formTable">
+	                <tbody>
+	                	<tr>
+	                		<th>Value:</th>
+							<td><input type="number" name="price" value="" autofocus="autofocus" />
+							
+							</td>
+						</tr>
+						
+						<tr>
+							<th>Output:</th>
+							<td><output id="output" onforminput="this.value = 'onforminput fired at '  + new Date().getTime();" ></output>
+							
+							</td>
+						</tr>
+						
+						
+					</tbody>
+				</table>
+			</fieldset>
+	</body>
+</html>

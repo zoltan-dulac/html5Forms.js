@@ -199,6 +199,7 @@ var fdSliderController = (function() {
                 /*@end@*/
         };              
         function fdSlider(options) {
+        	
                 var inp         = options.inp,
                     disabled    = false,
                     tagName     = inp.tagName.toLowerCase(),                      
@@ -206,8 +207,10 @@ var fdSliderController = (function() {
                     max         = +options.range[1], 
                     range       = Math.abs(max - min),
                     inc         = tagName == "select" ? 1 : +options.inc||1,
-                    maxInc      = options.maxInc ? options.maxInc : inc * 2,
-                    precision   = options.inc.search(".") != -1 ? options.inc.substr(options.inc.indexOf(".")+1, options.inc.length - 1).length : 0,
+                    maxInc      = options.maxInc && options.maxInc != 'undefined' ? options.maxInc : inc * 2;
+                   // alert(options.maxInc + "," + maxInc) 
+                    
+                    var precision   = options.inc.search(".") != -1 ? options.inc.substr(options.inc.indexOf(".")+1, options.inc.length - 1).length : 0,
                     steps       = Math.ceil(range / inc),
                     useTween    = !!options.tween,
                     fullARIA    = !!options.fullARIA,
@@ -334,6 +337,7 @@ var fdSliderController = (function() {
                                 maxPx     = vertical ? sH - hH : sW - hW;
                                 stepPx    = maxPx / steps;                                                 
                                 deltaPx   = maxPx / Math.ceil(range / maxInc);
+                                console.log(maxInc)
                                 
                                 sliderW = sW;
                                 sliderH = sH;

@@ -1,4 +1,4 @@
-input.wf2_invalid, textarea.wf2_invalid, select.wf2_invalid, div.wf2_errorMsg  { background-color:#FFCCCC; }
+input.wf2_invalid, textarea.wf2_invalid, select.wf2_invalid, div.wf2_errorMsg  {  }
 
 div.wf2_errorMsg {
 	position:absolute;
@@ -7,14 +7,15 @@ div.wf2_errorMsg {
 	cursor:default;
 	font-size:smaller;
 	max-width:25%;
-	opacity:0.5;	
-	filter: alpha(opacity=50);
+	display: none;
+	/* filter: alpha(opacity=50); */
 }
 
 div.wf2_firstErrorMsg,
 div.wf2_errorMsg:hover {
+	display: block;
 	opacity:1.0;
-	filter: alpha(opacity=100);
+	/* filter: alpha(opacity=100); */
 }
 div.wf2_errorMsg:hover {
 	z-index:100;
@@ -40,3 +41,162 @@ xh|*[|repeat="template"] {
 *[repeat="template"] {
 	display:none;
 }
+
+
+
+.wf2_errorMsg {
+	z-index: 10000;
+	border: solid #747474 1px !important;
+	border-radius: 10px;
+	background-image: linear-gradient(top, #535353 50%, #2c2d2e 100%);
+	background-image: -o-linear-gradient(top, #535353 50%, #2c2d2e 100%);
+	background-image:  -moz-linear-gradient(top, #535353 50%, #2c2d2e 100%);
+	background-image: -webkit-linear-gradient(top, #535353 50%, #2c2d2e 100%);
+	background-image: -ms-linear-gradient(top, #535353 50%, #2c2d2e 100%);
+	
+	background-image: -webkit-gradient(
+		linear,
+		left top,
+		left bottom,
+		color-stop(0.5, #535353),
+		color-stop(1, #2c2d2e)
+	);
+	background-color: none !important;
+	padding: 0 !important;
+	zoom: 1;
+	
+	color: white;
+	margin-top: 15px;
+	font-family: "Arial", "Helvetica", sans-serif;
+	
+}
+
+.wf2_errorMsgContainer {
+	padding: 20px 10px !important;
+	filter: progid:DXImageTransform.Microsoft.Gradient(startColorstr='#535353', endColorstr='#2c2d2e', GradientType=0);
+}
+
+
+
+form:not(.wf2-keep-native-style) ::-webkit-validation-bubble-message {
+		display: block;
+	    font: message-box;
+	    min-width: 50px;
+	    max-width: 200px;
+	    
+	    /* don't make this more than 1px wide -- if you do, it will look bad in webkit */
+	    border: 1px solid black;
+	    background: -webkit-gradient(linear, left top, left bottom, from(#535353), to(#2c2d2e));
+	    padding: 18px;
+	    -webkit-border-radius: 8px;
+    	-webkit-box-shadow: 0 0 0 0;
+	    line-height: normal;
+	    color: white;
+	    
+	    
+	    z-index: 10000;
+	    position: relative;
+	    
+    
+}
+
+
+form:not(.wf2-keep-native-style) ::-webkit-validation-bubble-top-outer-arrow {
+    border-bottom-color: #535353;
+}
+
+form:not(.wf2-keep-native-style) ::-webkit-validation-bubble-top-inner-arrow {
+    border-bottom-color: #535353;
+}
+
+form:not(.wf2-keep-native-style) ::-webkit-validation-bubble-arrow {
+	background: #535353;
+    border-color: transparent;
+    -webkit-box-shadow: 0 0 0 0;
+}
+
+form:not(.wf2-keep-native-style) ::-webkit-validation-bubble-icon {
+	display: none;
+}
+
+.wf2_errorMsg:before {
+	content: " ";
+	visibility: visible;
+	display: block;
+	width: 29px;
+	height: 15px;
+	
+	background: url('validationPointer.png');
+	position: absolute;
+	top: -15px;
+	left: 10px;
+
+	
+}
+
+/*
+input:invalid {
+	box-shadow: 0 0 3px rgba(255, 0, 0, 0.7);
+	-webkit-box-shadow: 0 0 3px rgba(255, 0, 0, 0.7);
+	border: solid 1px #999999;
+}
+
+input.wf2_invalid, textarea.wf2_invalid, select.wf2_invalid {
+	box-shadow: 0 0 3px rgba(255, 0, 0, 0.7);
+	-webkit-box-shadow: 0 0 3px rgba(255, 0, 0, 0.7);
+	border: solid 1px #999999;
+}
+
+body.ie7 input.wf2_invalid,
+body.ie8 input.wf2_invalid {
+	border: solid 1px #ff6666;
+}
+*/
+
+/*
+:-moz-submit-invalid {
+	background: red !important;
+}
+*/
+
+
+/* HTML5Widgets Placeholder text */
+.html5-hasPlaceholderText{font-family: "Arial", "Helvetica", sans-serif !important; color: #999999; font-style: italic}
+input::-webkit-input-placeholder {font-family: "Arial", "Helvetica", sans-serif; color: #999999; font-style: italic}
+input:-moz-placeholder {font-family: "Arial", "Helvetica", sans-serif; color: #999999; font-style: italic}
+input:-ms-input-placeholder {font-family: "Arial", "Helvetica", sans-serif; color: #999999; font-style: italic}
+
+
+/* 
+ * Default input invalid states.
+ */
+
+/* @-webkit-keyframes bounce {
+  0% {
+    opacity: 0.5;
+    margin-left: 85px;
+  }
+
+  25% {
+    margin-left: -35px;
+  }
+
+  50% {
+    margin-left: 50px;
+  }
+
+  75% {
+    margin-left: -22px;
+  }
+
+  100% {
+    margin-left: -15px;
+    opacity: 0.9;
+  }
+}
+
+form:not(.wf2-keep-native-style) ::-webkit-validation-bubble {
+  -webkit-animation-timing-function: ease;
+  -webkit-animation: bounce 0.45s 1;
+   
+} */

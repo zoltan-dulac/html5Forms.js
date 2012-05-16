@@ -1,0 +1,31 @@
+@import url("http://www.useragentman.com/shared/css/useragentmanExample.css");
+@import url("basicForm.css");
+
+input[required], select[required] {
+	background: #ffffee url("../images/asterix.gif")  no-repeat left 2px !important;
+	padding-left: 1.5em;
+	width: 13.5em !important;
+}
+
+input[type="radio"], input[type="checkbox"] {
+	background-image: none !important;
+	padding-left: 0;
+}
+
+select[required] {
+	width: 15.2em !important;
+}
+
+input[type="radio"], input[type="checkbox"] {
+	width: auto !important;
+}
+
+
+input:invalid {
+		
+}
+
+table.formTable input[type="submit"] {
+	width: auto;	
+}
+
