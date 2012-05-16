@@ -616,7 +616,7 @@ $wf2 = {
 				var maxBottom = $wf2.css.getScrollY() + $wf2.css.getWindowHeight();
 				var errorMsgHeight = $wf2.invalidIndicators[0].errorMsg.offsetHeight;
 				
-				console.log(elPos.y + errorMsgHeight, maxBottom)
+				//console.log(elPos.y + errorMsgHeight, maxBottom)
 				//NOTE: We should only do this if the control's style.bottom == 0
 				if (doScroll && elPos.y + errorMsgHeight > maxBottom) {
 					
@@ -1176,7 +1176,7 @@ $wf2 = {
 		
 		/* Webkit browsers need this */
 		if (!$wf2.hasNativeBubbles || (node.form && $wf2.getAttributeValue(node.form, 'data-webforms2-force-js-validation') == 'true')) {
-			console.log(node.name)
+			//console.log(node.name)
 			if (node.type == 'submit' || node.type == 'button') {
 				
 				node.formNoValidate=true;

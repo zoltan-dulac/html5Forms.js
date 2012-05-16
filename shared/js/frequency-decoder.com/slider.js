@@ -337,7 +337,7 @@ var fdSliderController = (function() {
                                 maxPx     = vertical ? sH - hH : sW - hW;
                                 stepPx    = maxPx / steps;                                                 
                                 deltaPx   = maxPx / Math.ceil(range / maxInc);
-                                console.log(maxInc)
+                               
                                 
                                 sliderW = sW;
                                 sliderH = sH;

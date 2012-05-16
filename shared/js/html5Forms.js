@@ -227,11 +227,11 @@ var html5Forms = new function () {
 			}
 			var message = me.getAttributeValue(node, 'data-errormessage');
 			node.setCustomValidity(message)
-			console.log('set custom validity')
+			//console.log('set custom validity')
 		}
 		
 		function clearMessageIfValidEvent (event) {
-			console.log(event.type)
+			//console.log(event.type)
 			var node = event.currentTarget || event.srcElement;
 			clearMessageIfValid(node);
 		}
@@ -240,13 +240,13 @@ var html5Forms = new function () {
 			node.setCustomValidity(''); 
 			if (!node.checkValidity()) {
 				showCustomMessage(node);
-				console.log('invalid')
+				//console.log('invalid')
 				if (document.addEventListener) {
 					globalEvent.initEvent('invalid', true, true); // event type,bubbling,cancelable
 	        		node.dispatchEvent(globalEvent);
 	        	}
 			} else {
-				console.log('valid')
+				//console.log('valid')
 			}
 		}
 		
