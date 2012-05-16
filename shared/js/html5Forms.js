@@ -10,7 +10,13 @@ var html5Forms = new function () {
 	
 	var globalEvent = document.addEventListener?document.createEvent("HTMLEvents"):null;
 	
-	
+	function getBrowserLanguage() {
+		var r = navigator.language;
+		if (!r) {
+			r = navigator.browserLanguage;
+		}
+		return r;
+	}
 	
 	me.init = function () {
 		var scriptNodes = document.getElementsByTagName('script');
@@ -88,7 +94,7 @@ var html5Forms = new function () {
 								!lang.match(/^(af|al|bg|big5|br|ca|cn|cs|da|de|du|el|en|es|fi|fr|he|hr|hu|it|jp|ko|ko|lt|lt|lv|nl|no|pl|pl|pt|ro|ru|si|sk|sp|sv|tr|zh)$/)){
 
 								
-								lang = navigator.language.split('-')[0];
+								lang = getBrowserLanguage().split('-')[0];
 							}
 							
 							

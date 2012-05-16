@@ -12,11 +12,11 @@
 		
 		
 		<!-- Needed for Forms Feature Detection -->
-		<script type="text/javascript" src="../../html5Forms/shared/js/modernizr.com/Modernizr-2.5.3.forms.js">
+		<script type="text/javascript" src="../../shared/js/modernizr.com/Modernizr-2.5.3.forms.js">
 		</script>
 		
 		<!-- Needed for Validation --> 
-		<script type="text/javascript" src="../../html5Forms/shared/js/html5Forms.js" data-webforms2-support="validation,range" data-webforms2-force-js-validation="true">
+		<script type="text/javascript" src="../../shared/js/html5Forms.js" data-webforms2-support="validation,range" data-webforms2-force-js-validation="true">
 		</script>
 		
 	</head>
@@ -78,12 +78,14 @@
                     </tr>
 				
 				<tr>
-					<th>Postal/Zip Code</th>
-					<td><input type="text" name="postalCode" value="" placeholder="Required information" required="required" 
-						pattern="^([A-Za-z]\d[A-Za-z])\ {0,1}(\d[A-Za-z]\d)$"
+					<th>Zip Code</th>
+					<td><input type="text" name="postalCode" value="" required="required" 
+						pattern="(\d{5}([\-]\d{4})?)" data-errormessage="This must be a valid postal code."
 					/>
-					<div class="description">Please enter a valid Canadian postal code.  Valid format is <strong>H0H 0H0</strong> where <strong>H</strong>
-					is a letter and <strong>0</strong> is a number.</div>
+					<div class="description">Please enter a valid American postal code. 
+					Valid format is <strong>nnnnn</strong> or <strong>nnnnn-nnnn</strong>
+					where <strong>n</strong>
+					is a numeric digit.</div>
 					
 					</td>
 				</tr>
