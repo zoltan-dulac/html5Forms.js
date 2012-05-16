@@ -16,10 +16,11 @@
  * version 0.5.4  - initial release by Weston Ruter
  * version 0.6    - refactored for use with HTML5Widgets by Zoltan Hawryluk (July 27th, 2010)
  * version 0.6.1  - updated to deal with WebKit's half-implemented WebForms 2 Implementation (Sept 10, 2010)
- * version 0.7    - bug fixes with nested repetition models by Zoltan Hawryluk.
+ * version 0.7    - abug fixes with nested repetition models by Zoltan Hawryluk.
  * version 0.7.1  - updated to dual MIT/GPL 2.0 license.
  * version 1.0    - Updated to mimic CSS validation pseudo-classes, support for newer browsers
- *                  native support (IE10, Firefox 4, Webkit, Opera 11.11)
+ *                  native support (IE10, Firefox 4, Webkit, Opera 11.11).  This version does rely on 
+ *                  the WebForms.js framework.
  */
 
 if(!window.$wf2){
@@ -48,8 +49,10 @@ $wf2 = {
 	
 	
 	onDOMContentLoaded : function(){
+		
 		if($wf2.isInitialized)
 			return;
+		
 		$wf2.isInitialized = true;  //Safari needs this here for some reason
 		
 		var i,j,k,node;
@@ -460,9 +463,11 @@ $wf2 = {
 		parent = (parent || document.documentElement);
 		var i,j, frm, frms = parent.getElementsByTagName('form');
 		for(i = 0; frm = frms[i]; i++){
+			
 			if(frm.checkValidity && !$wf2.hasBadImplementation && $wf2.getAttributeValue(frm, 'data-webforms2-force-js-validation') != 'true') {
 				continue;
 			}
+			
 			frm.checkValidity = $wf2.formCheckValidity;
 			
 			if(frm.addEventListener)
@@ -1173,7 +1178,7 @@ $wf2 = {
 	},
 
 	applyValidityInterface : function(node){
-		
+		//console.log('applying ' + node.name)
 		/* Webkit browsers need this */
 		if (!$wf2.hasNativeBubbles || (node.form && $wf2.getAttributeValue(node.form, 'data-webforms2-force-js-validation') == 'true')) {
 			//console.log(node.name)
@@ -1387,10 +1392,21 @@ $wf2 = {
 		var msg = document.createElement('div');
 		msg.className = 'wf2_errorMsg wf2_fromForm_' + (target.form.id || target.form.name);
 		
-		/* Let's put in a container in here so IE9- can put a gradient filter in here. */
+		//Let's put in a container in here so IE9- can put a gradient filter in here.
+		/* var msgContainer = document.createElement('div');
+		msgContainer.className = 'wf2_errorMsgContainer';
+		msg.appendChild(msgContainer);  */
+		
+		
+		
+		var IEmsgContainer = document.createElement('div');
+		IEmsgContainer.className = 'wf2_IEerrorMsgContainer';
+		msg.appendChild(IEmsgContainer); 
+		
 		var msgContainer = document.createElement('div');
 		msgContainer.className = 'wf2_errorMsgContainer';
-		msg.appendChild(msgContainer);
+		IEmsgContainer.appendChild(msgContainer); 
+		
 		
 		
 		//msg.title = "Close";
@@ -1427,6 +1443,9 @@ $wf2 = {
 			ol.className = 'single';
 		
 		msgContainer.appendChild(ol);
+		
+		
+		
 		////remove existing error message
 		//if(document.getElementById(msg.id))
 		//	document.documentElement.removeChild(document.getElementById(msg.id));
@@ -1449,6 +1468,14 @@ $wf2 = {
 		//	if(prevEl && prevCount > nextCount)
 		//	
 		//}
+		
+		// this allows a border radius on the msg to play well with IE9 and lower's Gradient filter on the msgContainer.
+		if (msg.currentStyle && msg.currentStyle.borderRadius && msgContainer.currentStyle.filter.indexOf('Gradient') > -1) {
+			
+			IEmsgContainer.style.borderRadius = msg.currentStyle.borderRadius;
+			IEmsgContainer.style.overflow = 'hidden';
+		}
+		
 		var el = target;
 		while(el && (el.nodeType != 1 || (el.style.display == 'none' || el.style.visibility == 'hidden' || !el.offsetParent)))
 			el = el.parentNode;
@@ -2355,11 +2382,6 @@ if(document.addEventListener){
 	}, false);
 }
 
-/*##################################################################################
- # Execute WF2 code onDOMContentLoaded
- # Some of the following code was borrowed from Dean Edwards, John Resig, et al <http://dean.edwards.name/weblog/2006/06/again/>
- ##################################################################################*/
-
 (function(){
 //Get the path to the library base directory
 var match;
@@ -2371,85 +2393,8 @@ for(var i = 0; i < scripts.length; i++){
 		$wf2.libpath = match[1];
 }
 
-//The script has been included after the DOM has loaded (perhaps via Greasemonkey), so fire immediately
-//NOTE: This does not work with XHTML documents in Gecko
-if(document.body){
-	$wf2.onDOMContentLoaded();
-	return;
-}
+EventHelpers.addPageLoadEvent('$wf2.onDOMContentLoaded', true)
 
-var eventSet = 0;
-if(document.addEventListener){
-	//for Gecko and Opera
-	document.addEventListener('DOMContentLoaded', function(){
-		$wf2.onDOMContentLoaded();
-	}, false);
-
-	//for other browsers which do not support DOMContentLoaded use the following as a fallback to be called hopefully before all other onload handlers
-	window.addEventListener('load', function(){
-		$wf2.onDOMContentLoaded();
-	}, false);
-	
-	eventSet = 1;
-}
-
-//for Safari
-if (/WebKit/i.test(navigator.userAgent)) { //sniff
-	var _timer = setInterval(function() {
-		if (/loaded|complete/.test(document.readyState)) {
-			clearInterval(_timer);
-			delete _timer;
-			$wf2.onDOMContentLoaded();
-		}
-	}, 10);
-	eventSet = 1;
-}
-//for Internet Explorer (formerly using conditional comments) //sniff
-else if(/MSIE/i.test(navigator.userAgent) && !document.addEventListener && window.attachEvent){
-	//This following attached onload handler will attempt to be the first onload handler to be called and thus
-	//  initiate the repetition model as early as possible if the DOMContentLoaded substitute fails.
-	window.attachEvent('onload', function(){
-		$wf2.onDOMContentLoaded();
-	});
-	
-	//Dean Edward's first solution: http://dean.edwards.name/weblog/2005/09/busted/
-	//document.getElementsByTagName('*')[0].addBehavior(dirname + 'repetition-model.htc'); //use this if Behaviors are employed in 0.9
-	document.write("<script defer src='" + $wf2.libpath + "webforms2-msie.js'><"+"/script>");
-
-	//Dean Edward's revisited solution <http://dean.edwards.name/weblog/2005/09/busted/> (via Matthias Miller with insights from jQuery)
-	//  Note that this solution will not result in its code firing before onload if there are no external images in the page; in this case, first solution above is used.
-	document.write("<scr" + "ipt id='__wf2_ie_onload' defer src='//:'><\/script>"); //MSIE memory leak according to Drip
-	var script = document.getElementById('__wf2_ie_onload');
-	script.onreadystatechange = function(){
-		if(this.readyState == 'complete'){
-			this.parentNode.removeChild(this);
-			$wf2.onDOMContentLoaded();
-			
-			//See issue #3 <http://code.google.com/p/repetitionmodel/issues/detail?id=3>
-			//Sometimes cssQuery doesn't find all repetition templates from here within this DOMContentLoaded substitute
-			if (window.$wf2Rep) {
-				if($wf2.repetitionTemplates.length == 0)
-					$wf2.isInitialized = false;
-			}
-		}
-	};
-	script = null;
-	eventSet = 1;
-}
-
-//old event model used as a last-resort fallback
-if(!eventSet){
-	if(window.onload){ //if(window.onload != RepetitionElement._init_document)
-		var oldonload = window.onload;
-		window.onload = function(){
-			$wf2.onDOMContentLoaded();
-			oldonload();
-		};
-	}
-	else window.onload = function(){
-		$wf2.onDOMContentLoaded();
-	};
-}
 })();
 } //End If(!document.implementation...
 

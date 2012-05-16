@@ -71,9 +71,16 @@ xh|*[|repeat="template"] {
 	
 }
 
+/* IE7 cannot use :before, so let's move the container up since it doesn't have the pointer */
+*:first-child+html .wf2_errorMsg{
+	margin-top: 0 !important;
+}
+
+
 .wf2_errorMsgContainer {
 	padding: 20px 10px !important;
 	filter: progid:DXImageTransform.Microsoft.Gradient(startColorstr='#535353', endColorstr='#2c2d2e', GradientType=0);
+	zoom: 1;
 }
 
 
