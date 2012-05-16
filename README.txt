@@ -14,10 +14,11 @@ It also supports:
 
 * form validation (via "required" and "pattern" attributes)
 * the autofocus attribute (i.e. focusing on a particular form element onload)
-* the placeholder attribute (i.e. descriptive text of what should be in an form field)
+* the placeholder attribute (i.e. descriptive text of what should be in a form
+  field)
 * the output tag (solves equations of form elements)
-* CSS styling of form validation states (simulates :invalid and :valid in unsupported 
-  browsers like IE9 and lower)
+* CSS styling of form validation states (simulates :invalid and :valid in 
+  unsupported browsers like IE9 and lower)
 
 More information about how this works is available at:
 
