@@ -12,9 +12,10 @@ input[required] {
 	background:url("../images/asterisk_orange.png") no-repeat right top;
 }
 
-/* radio buttons are exempt from this styling */
+
+
 input[type="checkbox"][required] {
-	background-image: none;
+	background-image: none !important;
 }
 
 
