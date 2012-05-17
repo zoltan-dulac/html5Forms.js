@@ -478,17 +478,9 @@ var EventHelpers = new function(){
     
         var func = eval(funcName);
        
-        // if document is already loaded, then just execute.
-        if (/loaded|complete|interactive/.test(document.readyState)) {
-        	mylog('execute immediately')
-        	func();
-        	return;
-       	}
-        
-        
         // for Internet Explorer < 9 (using conditional comments)
         /*@cc_on @*/
-        /*@if (@_win32 && @_jscript_version == 10)
+        /*@if (@_win32 && @_jscript_version < 10)
 		 if (timerForIE) {
 		 	isIEPolling = true;
 		 } else {
@@ -496,6 +488,16 @@ var EventHelpers = new function(){
 	     	return;
 		 }
          /*@end @*/
+        
+        // if document is already loaded, then just execute.
+        if (!isIEPolling && /loaded|complete|interactive/.test(document.readyState)) {
+        	mylog('execute immediately')
+        	func();
+        	return;
+       	}
+        
+        
+        
         
         if ((isSafari && safariVer < 3.1) || isIEPolling) { // sniff
         	mylog('polling')
