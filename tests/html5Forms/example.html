@@ -11,8 +11,10 @@
 		<link type="text/css" rel="stylesheet" href="../../shared/css/useragentmanExample.css">
 		
 		
-		<link type="text/css" rel="stylesheet" href="css/form.css" />
+		<link type="text/css" rel="stylesheet" href="css/basicForm.css" />
 		
+		<!-- This style sheet can be used as a basis to create validation-state styles -->
+		<link type="text/css" rel="stylesheet" href="css/validity.css" />
 		
        <!-- Needed for Forms Feature Detection -->
 		<script type="text/javascript" src="../../shared/js/modernizr.com/Modernizr-2.5.3.forms.js">
@@ -38,12 +40,12 @@
         	
 			<fieldset>
 				<legend>HTML5Widgets Test Form</legend>
-				<p>Form fields labelled <img src="images/asterix.gif" alt="*"/> are mandatory</p>
+				<p>Form fields labelled <img src="images/asterisk_orange.png" alt="*"/> are mandatory.</p>
             <table class="formTable">
                 <tbody>
                 	<tr>
                 		<th>Legal Name:</th>
-						<td><input type="text" name="name" value="" autofocus="autofocus" />
+						<td><input type="text" name="name" value="" autofocus="autofocus" required="required" />
 						<div class="description">This field has focus when the page
 						first loads because it has it's <code>autofocus</code>
 						attribute set to <code>true</code>.
@@ -52,7 +54,7 @@
 					
                 	<tr>
                 		<th>Company Name:</th>
-						<td><input type="text" name="placeholderEl" value=""
+						<td><input type="text" name="placeholderEl" value="" required="required"
 						placeholder="Leave blank if unemployed" />
 						<div class="description">This field has it's 
 						<code>placeholder</code> attribute set to 
@@ -69,7 +71,7 @@
                         <output class="withRange" onforminput="this.value = parseInt(rangeEl.value)" 
 							>-</output>	
 							
-						<input type="range"  name="rangeEl" value="" 
+						<input type="range"  name="rangeEl" value=""
                         min="0" max="150" class="range" />
 						
 						
@@ -81,7 +83,7 @@
                     <tr>
                         <th>Date/Time (Local)</th>
 
-                        <td><input type="datetime-local" name="DateTimeLocalTest" value=
+                        <td><input type="datetime-local" name="DateTimeLocalTest" required="required" value=
                         "">
 						<div class="description">The <code>datetime</code>,
 						<code>date</code>, <code>week</code> and <code>month</code>
@@ -96,7 +98,7 @@
 					<tr>
                         <th>Date/Time (UTC)</th>
 
-                        <td><input type="datetime" name="DateTimeTest" value=
+                        <td><input type="datetime" name="DateTimeTest" required="required" value=
                         "">
 						<div class="description">The <code>datetime</code>,
 						<code>date</code>, <code>week</code> and <code>month</code>
@@ -111,21 +113,21 @@
                     <tr>
                         <th>Date</th>
 
-                        <td><input type="date" name="DateTest" value=
+                        <td><input type="date" name="DateTest" required="required" value=
                         ""></td>
                     </tr>
 
                     <tr>
                         <th>Month</th>
 
-                        <td><input type="month" name="MonthTest" value=
+                        <td><input type="month" name="MonthTest" required="required" value=
                         ""></td>
                     </tr>
 
                     <tr>
                         <th>Week</th>
 
-                        <td><input type="week" name="WeekTest" value=
+                        <td><input type="week" name="WeekTest" required="required" value=
                         ""></td>
                     </tr>
 
@@ -135,7 +137,7 @@
                     <tr>
                         <th>Colour</th>
 
-                        <td><input type="color" name="ColorTest" value=
+                        <td><input type="color" name="ColorTest" required="required" value=
                         "" ></td>
                     </tr>
 					

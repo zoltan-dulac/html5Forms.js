@@ -5,64 +5,9 @@
 		
 		<link type="text/css" rel="stylesheet" href="css/basicForm.css" />
 		
-		<style type="text/css">
-		<!--
+		<!-- This style sheet can be used as a basis to create validation-state styles -->
+		<link type="text/css" rel="stylesheet" href="css/validity.css" />
 		
-		input:focus, textarea:focus {
-			-webkit-box-shadow:0 0 25px #ccc;
-			-moz-box-shadow:0 0 25px #ccc;
-			box-shadow:0 0 25px #ccc;
-			
-			-webkit-transform: scale(1.05);
-			-moz-transform: scale(1.05);
-			-ms-transform: scale(1.05);
-			-o-transform: scale(1.05);
-			transform: scale(1.05);
-		}
-		
-		input[type="number"]:focus {
-			-o-transform: none !important;
-		}
-		
-		/* The interesting bit */
-		
-		input:not(:focus), textarea:not(:focus) {
-			opacity:0.5;
-		}
-		
-		input:required, textarea:required{
-			background:url("images/asterisk_orange.png") no-repeat right 0px;						
-		}
-		
-		[required] {
-			background:url("images/asterisk_orange.png") no-repeat right 0px;		
-		}
-
-		input:valid, textarea:valid {
-			/* Make this important if you want IE10 to work right. */
-			background:url("images/tick.png") no-repeat right 0px !important;			
-		}
-		
-		.wf2_valid {
-			background:url("images/tick.png") no-repeat right 0px;			
-		}		
-
-		input:focus:invalid, textarea:focus:invalid {
-			background:url("images/cancel.png") no-repeat right 0px;						
-		}
-		
-		input.wf2_invalid:focus {
-			background:url("images/cancel.png") no-repeat right 0px;						
-		}
-
-		input[type=submit] {
-			padding:10px;
-			background:none !important;
-			opacity:1.0;
-		}
-		
-		-->
-		</style>
 		<script type="text/javascript" src="../../shared/js/modernizr.com/Modernizr-2.5.3.forms.js">
 		</script>
 		
@@ -86,18 +31,18 @@
 		</div>
 		
 		
-		<form >
+		<form action="http://www.useragentman.com/testForm.php">
 			<fieldset>
 				<legend>Personal Information</legend>
 		
-				<p>It is important you fill out <strong>all</strong> of the information in this form.</p>
+				<p>Form fields labelled <img src="images/asterisk_orange.png" alt="*"/> are mandatory.</p>
 				
 			<table class="formTable">
 				<tr>
 					<th>Full Name :</th>
 					<td><input type="text" name="fullName" value="" required="required" placeholder="Required information" 
-						oninvalid="this.setCustomValidity('Yo, Bro! You forgot to fill out this field!')" 
-						onkeydown="this.setCustomValidity('');"/>
+						data-errormessage="Yo, Bro! You forgot to fill out this field!"
+						/>
 					<div class="description"></div>
 					</td>
 				</tr>
@@ -105,19 +50,28 @@
 				<tr>
 					<th>Company Name :</th>
 					<td><input type="text" name="companyName" required="required" value="" 
-						oninvalid="this.setCustomValidity('Don\'t forget this field either, Holmes!')"
-						onkeydown="this.setCustomValidity('');"
+						data-errormessage="Don't forget this field either, Holmes!"
+						
 						 />
 					<div class="description"></div>
+					</td>
+				</tr>
+				<tr>
+					<th>Zip Code</th>
+					<td><input type="text" name="postalCode" value="" required="required" placeholder="e.g. 90210"
+						pattern="(\d{5}([\-]\d{4})?)" data-errormessage="This must be a valid zip code."
+					/>
+					
+					
+					
 					</td>
 				</tr>
 				
 				
 				
-				
 				<tr>
 					<td></td>
-					<td><input type="submit" value="Submit Information"/></td>
+					<td><input type="submit" name="submit" value="Submit Information"/></td>
 				</tr>
 			</table>
 			</fieldset>

@@ -463,11 +463,9 @@ $wf2 = {
 		parent = (parent || document.documentElement);
 		var i,j, frm, frms = parent.getElementsByTagName('form');
 		for(i = 0; frm = frms[i]; i++){
-			
 			if(frm.checkValidity && !$wf2.hasBadImplementation && $wf2.getAttributeValue(frm, 'data-webforms2-force-js-validation') != 'true') {
 				continue;
 			}
-			
 			frm.checkValidity = $wf2.formCheckValidity;
 			
 			if(frm.addEventListener)
@@ -771,6 +769,15 @@ $wf2 = {
 	
 	//This function is called "live" 
 	updateValidityState : function(node){
+		
+		var customErrorMessage = $wf2.getAttributeValue(node, 'data-errormessage');
+		var isCustomErrorMessageSet = (customErrorMessage == node.validationMessage);
+		
+		if (isCustomErrorMessageSet) {
+			node.validationMessage = '';
+		}
+		
+		
 		//if(node.form && node.form[node.name] && node.form[node.name].wf2HasInvalidIndicator)
 		//	return;
 		var type = (node.getAttribute('type') ? node.getAttribute('type').toLowerCase() : node.type);
@@ -1156,6 +1163,11 @@ $wf2 = {
 			//node.className = node.className.replace(/\s?wf2_valid/g, "") + ' wf2_invalid';
 			//console.log('not valid: ', node.className, 'value:', node.value, 'wtfValue:', node.wf2Value)
 		}
+		if (isCustomErrorMessageSet) {
+			node.validationMessage = customErrorMessage;
+		}
+		
+		
 		//This is now done onmousedown or onkeydown, just as Opera does
 		//if(node.validity.valid){
 		//	node.className = node.className.replace(/\s*\binvalid\b\s*/g, " "); //substitute for :invalid pseudo class

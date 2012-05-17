@@ -1,0 +1,48 @@
+/*
+ * STEP 1: Show the user when a form field is required with an orange star.
+ */
+
+/* Browsers that implement HTML5 Forms Natively */
+input:required, textarea:required{
+	background:url("../images/asterisk_orange.png") no-repeat right top;
+}
+
+/* Polyfill */
+input[required] {
+	background:url("../images/asterisk_orange.png") no-repeat right top;
+}
+
+
+
+/*
+ * STEP 2: Show the user when a form field has valid data in it with a green checkmark.
+ */
+
+/* Browsers that implement HTML5 Forms Natively */
+input[required]:valid, textarea[required]:valid {
+	/* Make this important if you want IE10 to work right. */
+	background:url("../images/tick.png") no-repeat right top !important;
+}
+
+/* Polyfill */
+input[required].wf2_valid {
+	background:url("../images/tick.png") no-repeat right top;
+}
+
+
+
+
+/*
+ * STEP 3: Show the user when a form field has invalid data in it with a red 'X'.
+ */
+
+/* Browsers that implement HTML5 Forms Natively */
+input:focus:invalid, textarea:focus:invalid {
+	background:url("../images/cancel.png") no-repeat right top;
+}
+
+/* Polyfill */
+input.wf2_invalid:focus {
+	background:url("../images/cancel.png") no-repeat right top;
+}
+
