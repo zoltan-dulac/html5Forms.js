@@ -25,6 +25,9 @@ More information about how this works is available at:
 http://www.useragentman.com/blog/2010/07/27/cross-browser-html5-forms-using-modernizr-webforms2-and-html5widgets/
 http://www.useragentman.com/blog/2012/05/14/cross-browser-styling-of-html5-forms-even-in-older-browsers/
 
-Note that this package was originally released in 2010 as html5Widgets, and was renamed 
-to a more accurate and descriptive name.
+Note that this package was originally released in 2010 as html5Widgets, 
+and was renamed to a more accurate and descriptive name.  Also note that
+the version of webforms2 that is included in this package does not 
+include support for the depricated repetition module -- it will be 
+put back in as a separate module at a later date.
 

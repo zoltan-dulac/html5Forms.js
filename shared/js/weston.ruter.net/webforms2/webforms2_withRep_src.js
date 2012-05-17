@@ -1,23 +1,6 @@
-/*
- * Web Forms 2.0 Cross-browser Implementation <http://code.google.com/p/webforms2/>
- * Version: 0.7 (2011-03-01)
- * Copyright: 2007, Weston Ruter <http://weston.ruter.net/> 
- *    with additions by Zoltan Hawryluk <http://www.useragentman.com>
- * Licenses (as of Feb 6, 2011)
- * - MIT License (http://www.opensource.org/licenses/mit-license.php)
- * - GPL (http://creativecommons.org/licenses/GPL/2.0/)
- * 
- * The comments contained in this code are largely quotations from the 
- * WebForms 2.0 specification: <http://whatwg.org/specs/web-forms/current-work/>
- *
- * Usage: <script type="text/javascript" src="webforms2_src.js"></script>
- * 
- * Changelog:
- * version 0.5.4  - initial release by Weston Ruter
- * version 0.6    - refactored for use with HTML5Widgets by Zoltan Hawryluk (July 27th, 2010)
- * version 0.6.1  - updated to deal with WebKit's half-implemented WebForms 2 Implementation (Sept 10, 2010)
- * version 0.7    - bug fixes with nested repetition models by Zoltan Hawryluk.
- * version 0.7.1  - updated to dual MIT/GPL 2.0 license.
+/* 
+ * This file should not be used.  It is to be used as a basis for adding back support
+ * for the repetition module of the newer version of webforms2 at a later date
  */
 
 if(!window.$wf2){
