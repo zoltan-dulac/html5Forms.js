@@ -19,6 +19,16 @@ It also supports:
 * the output tag (solves equations of form elements)
 * CSS styling of form validation states (simulates :invalid and :valid in 
   unsupported browsers like IE9 and lower)
+* CSS styling of form elements that are not included in the CSS3 UI 
+  specification, but I think are useful for developers:
+  
+  - .wf2_isBlank, .wf2_notBlank – these classes are applied to form field when 
+     a form element is blank/not blank repectively.
+  - .wf2_lostFocus -this class is applied to a form element when a form field 
+     loses focus.
+  - .wf2_submitAttempted – this class is applied to a <form> tag when a form 
+     submission is attempted.
+
 
 More information about how this works is available at:
 
