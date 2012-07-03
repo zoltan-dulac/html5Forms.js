@@ -170,7 +170,7 @@ body.ie8 input.wf2_invalid {
 /* HTML5Widgets Placeholder text */
 .html5-hasPlaceholderText{font-family: "Arial", "Helvetica", sans-serif !important; color: #999999; font-style: italic}
 input::-webkit-input-placeholder {font-family: "Arial", "Helvetica", sans-serif; color: #999999; font-style: italic}
-input:-moz-placeholder {font-family: "Arial", "Helvetica", sans-serif; color: #999999; font-style: italic}
+input:-moz-placeholder, textarea:-moz-placeholder {font-family: "Arial", "Helvetica", sans-serif; color: #999999; font-style: italic !important}
 input:-ms-input-placeholder {font-family: "Arial", "Helvetica", sans-serif; color: #999999; font-style: italic}
 
 

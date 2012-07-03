@@ -136,6 +136,8 @@ $wf2 = {
 		for (var i=0; i<$wf2.callAfterDOMContentLoaded.length; i++) {
 			$wf2.callAfterDOMContentLoaded[i]();
 		}
+		
+		
 	},
 
 	
@@ -463,6 +465,10 @@ $wf2 = {
 		parent = (parent || document.documentElement);
 		var i,j, frm, frms = parent.getElementsByTagName('form');
 		for(i = 0; frm = frms[i]; i++){
+			
+			// use the native validation if the browser has it, unless 
+			// the form has a data-webforms2-force-js-validation attribute
+			// set to "true". 
 			if(frm.checkValidity && !$wf2.hasBadImplementation && $wf2.getAttributeValue(frm, 'data-webforms2-force-js-validation') != 'true') {
 				continue;
 			}
@@ -478,6 +484,23 @@ $wf2 = {
 		for(i = 0; ctrl = ctrls[i]; i++){
 			$wf2.applyValidityInterface(ctrl);
 			$wf2.updateValidityState(ctrl); //ctrl._updateValidityState();
+			
+			// add CSS focus-like support for IE7 and under
+			/*@cc_on
+			  
+			 	ctrl.attachEvent('onfocus', function (e) {
+			 		
+			 		$wf2.css.addClass(e.srcElement, 'wf2_focus');
+			 		
+			 	});
+			 	
+			 	ctrl.attachEvent('onblur', function (e) { 
+			 		
+			 		$wf2.css.removeClass(e.srcElement, 'wf2_focus')
+			 	});
+			 
+			  
+			 @*/
 		}
 		
 		//Autofocus **********************************************************
@@ -818,8 +841,10 @@ $wf2 = {
 		var doMaxLengthCheck = doCheckPrecision || node.nodeName.toLowerCase() == 'textarea'; //datetime, datetime-local, time, date, month, week, number, range, textarea
 		var doCheckRange = (doCheckPrecision || isFileInput); //datetime, datetime-local, time, date, month, week, number, range, file
 		var isRadioOrCheckbox = (type == 'radio' || type == 'checkbox');
+		var isSelect = (node.nodeName == 'SELECT');
 		var doRequiredCheck = (doMaxLengthCheck  || //datetime, datetime-local, time, date, month, week, number, range, textarea
 							   isFileInput       ||
+							   isSelect ||
 							   type == 'email'   ||
 							   type == 'url'     ||
 							   type == 'text'    ||
@@ -1152,17 +1177,46 @@ $wf2 = {
 		//customError -- The control was marked invalid from script. See the definition of the setCustomValiditiy() method.
 		//console.log('second: ', node.validity.stepMismatch)
 		node.validity.valid = !$wf2.hasInvalidState(node.validity);
+		var nextSib = (node.nextSibling);
+		if (nextSib && nextSib.nodeName != 'SPAN' && !$wf2.css.isMemberOfClass(nextSib, 'wf2-validityIndicator')) {
+			nextSib = null;
+		}
+		
 		if (node.validity.valid) {
 			$wf2.css.removeClass(node, 'wf2_invalid');
 			$wf2.css.addClass(node, 'wf2_valid');
+			
+			/*
+			 * If we have an .wf2-validityIndicator span after the input, mark these as well
+			 */
+			if (nextSib) {
+				$wf2.css.removeClass(nextSib, 'wf2_invalid');
+				$wf2.css.addClass(nextSib, 'wf2_valid');
+				//console.log('valid: ', nextSib.className);
+			}
+			
 			//node.className = node.className.replace(/\s?wf2_invalid/g, "") + ' wf2_valid';
-			//console.log('valid: ', node.className)
+			
 		} else { 
 			$wf2.css.removeClass(node, 'wf2_valid');
 			$wf2.css.addClass(node, 'wf2_invalid');
-			//node.className = node.className.replace(/\s?wf2_valid/g, "") + ' wf2_invalid';
-			//console.log('not valid: ', node.className, 'value:', node.value, 'wtfValue:', node.wf2Value)
+			
+			/*
+			 * If we have an .wf2-validityIndicator span after the input, mark these as well
+			 */
+			if (nextSib) {
+				$wf2.css.removeClass(nextSib, 'wf2_valid');
+				$wf2.css.addClass(nextSib, 'wf2_invalid');
+				//node.className = node.className.replace(/\s?wf2_valid/g, "") + ' wf2_invalid';
+				//console.log('not valid: ', nextSib.className, 'value:', node.value, 'wtfValue:', node.wf2Value)
+			}
+			
+			
 		}
+		
+		
+		
+		
 		if (isCustomErrorMessageSet) {
 			node.validationMessage = customErrorMessage;
 		}
@@ -1288,6 +1342,7 @@ $wf2 = {
 	/* updateValidityState: function (node) {
 		if (node.checkValidity()){
 			node.className = node.className.replace(/\s?wf2_invalid/, "");
+			
 		} else {
 			node.className += ' wf2_invalid';
 		}
@@ -1320,7 +1375,9 @@ $wf2 = {
 			$wf2.callAfterValidation[i](event, r);
 		}
 		
-		
+		// Finally .. set a class on the form to indicate that a form
+		// submit was attempted
+		$wf2.css.addClass(frm, 'wf2_submitAttempted');
 		
 		return r;
 	},
@@ -1515,11 +1572,14 @@ $wf2 = {
 		/* if(!target.className.match(/\bwf2_invalid\b/))
 			target.className += " wf2_invalid"; */
 		$wf2.css.addClass(target, 'wf2_invalid');
-			
-		if($wf2.indicatorIntervalId == null){
+		
+		
+		// WR: We removed the commented stuff below because it is not needed for the new validation routines.
+		/* if($wf2.indicatorIntervalId == null){
 			//var i = $wf2.invalidIndicators.length - 1;
 			$wf2.indicatorIntervalId = setInterval(function(){
 				var invalidIndicator;
+				
 				for(var i = 0; invalidIndicator = $wf2.invalidIndicators[i]; i++){
 					
 					if (!$wf2.css.isMemberOfClass(invalidIndicator.target, 'wf2_invalid')) {
@@ -1529,16 +1589,10 @@ $wf2 = {
 					}
 					
 					
-					/* 
-					if(!invalidIndicator.target.className.match(/\bwf2_invalid\b/)){
-						invalidIndicator.target.className += " wf2_invalid";
-					}
-					else {
-						invalidIndicator.target.className = invalidIndicator.target.className.replace(/\s?wf2_invalid/, "");
-					} */
+					
 				}
 				
-			}, 500);
+			}, 500); 
 			return;
 			// call routines other libraries have set to be run before
 			// validation.
@@ -1548,11 +1602,23 @@ $wf2 = {
 				}
 			}, 1);
 			$wf2.indicatorTimeoutId = setTimeout($wf2.clearInvalidIndicators, 4000);
-		}
+		}*/
 		
 	},
 
-	clearInvalidIndicators : function(){
+	clearInvalidIndicators : function(e){
+		
+		if (e.type == 'mousedown') {
+			var coords = $wf2.css.getMouseCoords(e),
+				browserWidth = $wf2.css.getWindowWidth(),
+				offset = (window.innerWidth )?16:0;
+				
+				if (coords.x >= browserWidth - offset) {
+					return;
+				}
+		}
+		
+		
 		clearTimeout($wf2.indicatorTimeoutId);
 		$wf2.indicatorTimeoutId = null;
 		clearInterval($wf2.indicatorIntervalId);
@@ -2319,6 +2385,36 @@ $wf2 = {
 		}
 		
 		/**
+		 * gets the current window's width.  
+		 * 
+		 * @author Peter-Paul Koch - http://www.quirksmode.org
+		 * @license see http://www.quirksmode.org/about/copyright.html
+		 * @return {int} - the window's width, in pixels.
+		 */
+		me.getWindowWidth = function (theWindow)
+		{
+			if (!theWindow) {
+				theWindow = window;
+			}
+			
+			var theDocument = theWindow.document;
+			
+			// all except IE
+			if (theWindow.innerWidth != null)  {
+				return theWindow.innerWidth;
+			// IE6 Strict mode
+			} else if (theDocument.documentElement && 
+					theDocument.documentElement.clientWidth ) {
+				return theDocument.documentElement.clientWidth;	
+			// IE strictly less than 6
+			} else if (theDocument.body != null) {
+				return theDocument.body.clientWidth;
+			} else {	
+				return null;
+			}
+		}
+		
+		/**
 		 * gets the current window's height.  
 		 * 
 		 * @author Peter-Paul Koch - http://www.quirksmode.org
@@ -2344,6 +2440,38 @@ $wf2 = {
 			} else if (theDocument.body != null) {
 				return theDocument.body.clientHeight;
 			} else {
+				return null;
+			}
+		}
+		
+		me.getMouseCoords = function (e) {
+			if (!e) {
+				return;
+			}
+			// IE
+			if (e.clientX != null) {
+				return {
+					x: e.clientX,
+					y: e.clientY
+				}
+			
+			}
+			// NS4
+			else if (e.pageX != null) {
+				return {
+					x: e.pageX,
+					y: e.pageY
+				}
+			// W3C
+			}  else if (window.event != null && window.event.clientX != null 
+					&& document.body != null && 
+					document.body.scrollLeft != null) {
+				return {
+					x: window.event.clientX + document.body.scrollLeft,
+					y: window.event.clientY + document.body.scrollTop
+				}
+						
+			} else { 
 				return null;
 			}
 		}

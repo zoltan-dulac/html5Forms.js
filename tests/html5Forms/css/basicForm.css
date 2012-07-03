@@ -1,3 +1,10 @@
+/*
+ * This stylesheet, as well as the imported one, are for general styling
+ * and do not contain any form validation styling.
+ */
+
+
+
 @import url("http://www.useragentman.com/shared/css/useragentmanExample.css");
 body {
 	font-family: "Arial", sans-serif;

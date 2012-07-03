@@ -3,6 +3,7 @@ var html5Forms = new function () {
 	
 	var scriptNode = null,
 		scriptDir = null,
+		isScriptCompressed = false,
 		
 		// WebKit less than 534 doesn't show validation UI - we need to check for this (from http://stackoverflow.com/questions/6030522/html5-form-validation-modernizr-safari)
 		hasNativeBubbles = navigator.userAgent.indexOf('WebKit') < 0 || parseInt(navigator.userAgent.match(/AppleWebKit\/([^ ]*)/)[1].split('.')[0])  > 534,
@@ -19,6 +20,20 @@ var html5Forms = new function () {
 		return r;
 	}
 	
+	
+	me.start = function () {
+		
+		var split = navigator.userAgent.split('Firefox/');
+		
+		//Firefox 3.6 gives a wierd error when using the Twitter API
+		//unless you do this onload.
+		if (split.length>=1 && parseFloat(split[1]) <= 3.6) {
+			EventHelpers.addEvent(window, 'load', me.init);
+		} else {
+			me.init();
+		}
+	}
+	
 	me.init = function () {
 		var scriptNodes = document.getElementsByTagName('script');
 		
@@ -28,6 +43,9 @@ var html5Forms = new function () {
 			if (scriptNode.src.match('html5Forms(_src|-p|)\.js')) {
 				scriptNode = scriptNode;
 				scriptDir = getScriptDir();
+				if (scriptNode.src.indexOf('html5Forms-p.js') >= 0) {
+					isScriptCompressed = true;
+				}
 				break;
 			}
 		}
@@ -38,7 +56,7 @@ var html5Forms = new function () {
 				/* let's load the supporting scripts according to what is in data-webforms2-support */
 				var supportArray = scriptNode.getAttribute('data-webforms2-support');
 				var forceJSValidation = (scriptNode.getAttribute('data-webforms2-force-js-validation') == 'true');
-				
+				var turnOffValidation = (scriptNode.getAttribute('data-webforms2-turn-off-validation') == 'true');
 				if (!supportArray) {
 					return;
 				} else if (trim(supportArray) == 'all') {
@@ -58,16 +76,27 @@ var html5Forms = new function () {
 						
 						case "validation":
 						case "autofocus":
-							if (!Modernizr.input.required || hasBadValidationImplementation || forceJSValidation) {
-								
-								toLoad = toLoad.concat([  
-										scriptDir + '../../shared/js/weston.ruter.net/webforms2/webforms2_src.js']);
-								
-								if (supportReq == 'autofocus') {
-									loadHTML5Widgets = true;
+							if (turnOffValidation) {
+								//me.turnOffNativeValidation();
+								EventHelpers.addPageLoadEvent('html5Forms.turnOffNativeValidation')
+							} else {
+						
+								if (!Modernizr.input.required || hasBadValidationImplementation || forceJSValidation) {
+									
+									if (isScriptCompressed) {
+										toLoad = toLoad.concat([  
+											scriptDir + '../../shared/js/weston.ruter.net/webforms2/webforms2-p.js']);
+									} else {
+										toLoad = toLoad.concat([  
+											scriptDir + '../../shared/js/weston.ruter.net/webforms2/webforms2_src.js']);
+									}
+									
+									if (supportReq == 'autofocus') {
+										loadHTML5Widgets = true;
+									}
+									
 								}
-								
-							}	
+							}
 							break;
 						case "number":
 							if (!inputSupport.number) {
@@ -147,14 +176,14 @@ var html5Forms = new function () {
 					// allow browsers that don't need webforms2 to handle custom error messages populated
 					// in the data-errormessage attribute
 					if (document.addEventListener) {
-						document.addEventListener('DOMContentLoaded', handleCustomErrorMessages, false);
+						document.addEventListener('DOMContentLoaded', setupExtraFeatures, false);
 					}
 				} else {
 					yepnope({
 						load: toLoad,
 						complete: function (){
 							loadWidgets();
-							handleCustomErrorMessages();
+							setupExtraFeatures();
 						}
 					});
 				}
@@ -180,46 +209,133 @@ var html5Forms = new function () {
 			
 		}
 		
+		
+		
 		/*
 		 * This should work even when webforms2 is not loaded.
+		 * It sets up extra features for HTML5Forms like:
+		 * 1) Setting custom error messages on form elements.
+		 * 2) setting up isBlank and isBlurred classes.
+		 * 3) settung up form.wf2_submitAttempted
 		 */
-		function handleCustomErrorMessages() {
-			
+		function setupExtraFeatures() {
 			var nodeNames = ["input", "select", "textarea"];
 			for (var i=0; i<nodeNames.length; i++) {
 				var nodes = document.getElementsByTagName(nodeNames[i]);
 				
 				for (var j=0; j<nodes.length; j++) {
 					var node = nodes[j];
-					var message = me.getAttributeValue(node, 'data-errormessage');
-					if (message) {
-						if(document.addEventListener){
-							node.addEventListener('invalid', showCustomMessageEvent, false);
-							node.addEventListener('focus', showCustomMessageEvent, false);
-							
-							// Opera doesn't work well with this.
-							if (!window.opera) {
-								node.addEventListener('keypress', clearMessageIfValidEvent, false);
-							}
-							
-							node.addEventListener('input', clearMessageIfValidEvent, false);
-						} else {
-							var invalidEvent = ' this.setCustomValidity("' + message + '");';
-							if (node.oninvalid) {
-								node.oninvalid += invalidEvent;
-							} else {
-								node.oninvalid = invalidEvent;
-							}
-							node.oninvalid = new Function('event', node.oninvalid);
-							
-							// IE freaks a little on keypress here, so change to keydown.
-							node.attachEvent('onkeydown', clearMessageIfValidEvent);
-							node.attachEvent('oninput', clearMessageIfValidEvent); 
-						}
-						clearMessageIfValid(node);
+					setErrorMessageEvents(node);
+					setCustomClassesEvents(node);
+					setNodeClasses(node, true);
+				}
+				
+				if (i==0 && node.type=="submit") {
+					EventHelpers.addEvent(node, 'click', submitClickEvent);
+				}
+			}
 			
+			var forms = document.getElementsByTagName('form');
+			for (var i=0; i<forms.length; i++) {
+				EventHelpers.addEvent(forms[i], 'submit', submitEvent);
+			}
+		}
+		
+		function submitEvent(e) {
+			var target = EventHelpers.getEventTarget(e);
+			markSubmitAttempt(target);
+		}
+		
+		function submitClickEvent(e) {
+			var target = EventHelpers.getEventTarget(e);
+			markSubmitAttempt(target.form);
+		}
+		
+		function markSubmitAttempt(form) {
+			me.css.addClass(form, 'wf2_submitAttempted');
+		}
+		
+		function setCustomClassesEvents(node) {
+			EventHelpers.addEvent(node, 'keyup', nodeChangeEvent);
+			EventHelpers.addEvent(node, 'change', nodeChangeEvent);
+			EventHelpers.addEvent(node, 'blur', nodeBlurEvent);
+		}
+		
+		function nodeChangeEvent(e) {
+			var node = EventHelpers.getEventTarget(e);
+			setNodeClasses(node);
+		}
+		
+		function setNodeClasses(node, isLoadEvent) {	
+			if (node.value === '') {
+				
+				me.css.addClass(node, 'wf2_isBlank');
+				me.css.removeClass(node, 'wf2_notBlank');
+			} else {
+				me.css.addClass(node, 'wf2_notBlank');
+				me.css.removeClass(node, 'wf2_isBlank');
+			}
+			
+			if (isLoadEvent && node.nodeName == 'SELECT') {
+				node.setAttribute('data-wf2-initialvalue', node.value)
+			}
+			
+			if ((node.nodeName == 'SELECT' && me.getAttributeValue(node, 'data-wf2-initialvalue') != node.value)
+			    || (node.nodeName != 'SELECT' && me.getAttributeValue(node, 'value') != node.value)) {
+				me.css.removeClass(node, 'wf2_defaultValue');
+				me.css.addClass(node, 'wf2_notDefaultValue');
+			} else {
+				me.css.addClass(node, 'wf2_defaultValue');
+				me.css.removeClass(node, 'wf2_notDefaultValue');
+			}
+		}
+		
+		function nodeBlurEvent(e) {
+			var node = EventHelpers.getEventTarget(e);
+			
+			me.css.addClass(node, 'wf2_lostFocus');
+		}
+		
+		function setErrorMessageEvents(node) {
+			var message = me.getAttributeValue(node, 'data-errormessage');
+			if (message) {
+				if(document.addEventListener){
+					node.addEventListener('invalid', showCustomMessageEvent, false);
+					node.addEventListener('focus', showCustomMessageEvent, false);
+					
+					// Opera doesn't work well with this.
+					if (!window.opera) {
+						node.addEventListener('keypress', clearMessageIfValidEvent, false);
+					}
+					
+					node.addEventListener('input', clearMessageIfValidEvent, false);
+					
+					if (node.nodeName == 'SELECT') {
+						node.addEventListener('change', clearMessageIfValidEvent, false);
+						node.addEventListener('click', clearMessageIfValidEvent, false);
+					}
+				} else {
+					var invalidEvent = ' this.setCustomValidity("' + message + '");';
+					if (node.oninvalid) {
+						node.oninvalid += invalidEvent;
+					} else {
+						node.oninvalid = invalidEvent;
+					}
+					node.oninvalid = new Function('event', node.oninvalid);
+					
+					// IE freaks a little on keypress here, so change to keydown.
+					node.attachEvent('onkeydown', clearMessageIfValidEvent);
+					node.attachEvent('oninput', clearMessageIfValidEvent); 
+					
+					if (node.nodeName == 'SELECT') {
+						node.attachEvent('change', clearMessageIfValidEvent, false);
+						node.attachEvent('click', clearMessageIfValidEvent, false);
 					}
 				}
+				
+				
+				clearMessageIfValid(node);
+	
 			}
 		}
 		
@@ -264,6 +380,14 @@ var html5Forms = new function () {
 		
 	}
 	
+	me.turnOffNativeValidation = function () {
+			
+			var formNodes = document.getElementsByTagName('form');
+			for (var i=0; i<formNodes.length; i++) {
+				formNodes[i].setAttribute('novalidate', 'novalidate');
+			}
+		}
+	
 	var supportsOutput = function () {
 		var outputEl = document.createElement('output');
 		return (outputEl.value != undefined && (outputEl.onforminput !== undefined || outputEl.oninput !== undefined));
@@ -307,6 +431,91 @@ var html5Forms = new function () {
 		return str.replace(initWhitespaceRe, '')
 			.replace(endWhitespaceRe, '');
 	}  
+	
+	me.css = new function () {
+		var me = this;
+		
+		var blankRe = new RegExp('\\s');
+
+		/**
+		 * Generates a regular expression string that can be used to detect a class name
+		 * in a tag's class attribute.  It is used by a few methods, so I 
+		 * centralized it.
+		 * 
+		 * @param {String} className - a name of a CSS class.
+		 */
+		
+		function getClassReString(className) {
+			return '\\s'+className+'\\s|^' + className + '\\s|\\s' + className + '$|' + '^' + className +'$';
+		}
+		
+		function getClassPrefixReString(className) {
+			return '\\s'+className+'-[0-9a-zA-Z_]+\\s|^' + className + '[0-9a-zA-Z_]+\\s|\\s' + className + '[0-9a-zA-Z_]+$|' + '^' + className +'[0-9a-zA-Z_]+$';
+		}
+		
+		
+		/**
+		 * Make an HTML object be a member of a certain class.
+		 * 
+		 * @param {Object} obj - an HTML object
+		 * @param {String} className - a CSS class name.
+		 */
+		me.addClass = function (obj, className) {
+			
+			if (blankRe.test(className)) {
+				return;
+			}
+			
+			// only add class if the object is not a member of it yet.
+			if (!me.isMemberOfClass(obj, className)) {
+				obj.className += " " + className;
+			}
+			
+		}
+		
+		/**
+		 * Make an HTML object *not* be a member of a certain class.
+		 * 
+		 * @param {Object} obj - an HTML object
+		 * @param {Object} className - a CSS class name.
+		 */
+		me.removeClass = function (obj, className) {
+			
+			if (blankRe.test(className)) {
+				return; 
+			}
+			
+			
+			var re = new RegExp(getClassReString(className) , "g");
+			
+			var oldClassName = obj.className;
+		
+		
+			if (obj.className) {
+				obj.className = oldClassName.replace(re, ' ');
+			}
+		
+			
+		}
+		
+		/**
+		 * Determines if an HTML object is a member of a specific class.
+		 * @param {Object} obj - an HTML object.
+		 * @param {Object} className - the CSS class name.
+		 */
+		me.isMemberOfClass = function (obj, className) {
+			
+			if (blankRe.test(className))
+				return false;
+			
+			var re = new RegExp(getClassReString(className) , "g");
+		
+			return (re.test(obj.className));
+		
+		
+		}
+		
+	}
 
 }
 
@@ -336,6 +545,7 @@ var EventHelpers = new function(){
 	if (safariVer != null && safariVer.length == 2) {
 		safariVer = parseFloat(safariVer[1]);
 	}
+	
 	
 	me.init = function () {
 		if (me.hasPageLoadHappened(arguments)) {
@@ -651,4 +861,4 @@ var EventHelpers = new function(){
     }
 }
 
-html5Forms.init();
+html5Forms.start();
