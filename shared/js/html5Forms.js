@@ -55,8 +55,9 @@ var html5Forms = new function () {
 				var inputSupport = Modernizr.inputtypes;
 				/* let's load the supporting scripts according to what is in data-webforms2-support */
 				var supportArray = scriptNode.getAttribute('data-webforms2-support');
-				var forceJSValidation = (scriptNode.getAttribute('data-webforms2-force-js-validation') == 'true');
-				var turnOffValidation = (scriptNode.getAttribute('data-webforms2-turn-off-validation') == 'true');
+				me.forceJSValidation = (scriptNode.getAttribute('data-webforms2-force-js-validation') == 'true');
+				me.turnOffValidation = (scriptNode.getAttribute('data-webforms2-turn-off-validation') == 'true');
+				me.forceJSDatePicker = (scriptNode.getAttribute('data-webforms2-force-js-date-picker') == 'true');
 				if (!supportArray) {
 					return;
 				} else if (trim(supportArray) == 'all') {
@@ -76,12 +77,12 @@ var html5Forms = new function () {
 						
 						case "validation":
 						case "autofocus":
-							if (turnOffValidation) {
+							if (me.turnOffValidation) {
 								//me.turnOffNativeValidation();
 								EventHelpers.addPageLoadEvent('html5Forms.turnOffNativeValidation')
 							} else {
 						
-								if (!Modernizr.input.required || hasBadValidationImplementation || forceJSValidation) {
+								if (!Modernizr.input.required || hasBadValidationImplementation || me.forceJSValidation) {
 									
 									if (isScriptCompressed) {
 										toLoad = toLoad.concat([  
@@ -129,7 +130,7 @@ var html5Forms = new function () {
 							
 							
 							
-							if (!inputSupport.date) {
+							if (!inputSupport.date || me.forceJSDatePicker) {
 								toLoad = toLoad.concat([  
 										  scriptDir + '../../shared/js/jscalendar-1.0/calendar-win2k-1.css',
 										  scriptDir + '../../shared/js/jscalendar-1.0/calendar.js', 
@@ -238,6 +239,7 @@ var html5Forms = new function () {
 			var forms = document.getElementsByTagName('form');
 			for (var i=0; i<forms.length; i++) {
 				EventHelpers.addEvent(forms[i], 'submit', submitEvent);
+				EventHelpers.addEvent(forms[i], 'reset', resetEvent);
 			}
 		}
 		
@@ -246,6 +248,11 @@ var html5Forms = new function () {
 			markSubmitAttempt(target);
 		}
 		
+		function resetEvent(e) {
+			var target = EventHelpers.getEventTarget(e);
+			
+			resetForm(target);
+		}
 		function submitClickEvent(e) {
 			var target = EventHelpers.getEventTarget(e);
 			markSubmitAttempt(target.form);
@@ -253,6 +260,27 @@ var html5Forms = new function () {
 		
 		function markSubmitAttempt(form) {
 			me.css.addClass(form, 'wf2_submitAttempted');
+		}
+		
+		function removeSubmitAttempt(form) {
+			me.css.removeClass(form, 'wf2_submitAttempted');
+		}
+		
+		function resetForm(form) {
+			removeSubmitAttempt(form);
+			var nodeNames = ["input", "select", "textarea"];
+			for (var i=0; i<nodeNames.length; i++) {
+				var nodes = form.getElementsByTagName(nodeNames[i]);
+				
+				for (var j=0; j<nodes.length; j++) {
+					var node = nodes[j];
+					
+					me.css.removeClass(node, 'wf2_lostFocus');
+					me.css.removeClass(node, 'wf2_notBlank');
+					me.css.addClass(node, 'wf2_isBlank');
+				}
+				
+			}
 		}
 		
 		function setCustomClassesEvents(node) {

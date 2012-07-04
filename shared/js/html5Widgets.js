@@ -195,7 +195,7 @@ var html5Widgets = new function(){
 				case "datetime-local":
 					
 					// check to see if the browser supports the type.
-					if (!inputSupport[elType]) {
+					if (!inputSupport[elType] || (window.html5Forms && html5Forms.forceJSDatePicker)) {
 						me.inputNodes.push(new CalendarElement(formElement, elType));
 					}
 					break;
@@ -508,6 +508,20 @@ var html5Widgets = new function(){
 					formatString = "%Y-%m-%d %H:%M"
 					break;
 			}
+			
+			/*
+			* Chrome, unfortunately, only implements type="date", and it's
+			* implementation displays the data in DD/MM/YYYY format. Even 
+			* though it submits the data in YYYY-MM-DD format, this can
+			* be confusing to users if there is a, say, datetime widget
+			* with a date widget and they show different formats.  In order
+			* to fix this, I change the type to "text" so that it uses the
+			* polyfill instead of the native one.  Note that type="date" 
+			* widgets in Chrome are only changed to type="text" when 
+			* html5Forms.js's script tag has its 
+			* data-webforms2-force-js-date-picker attribute set to "true".
+			*/
+			me.node.type = 'text';
 			
 			//me.node.readOnly = true;
 			
