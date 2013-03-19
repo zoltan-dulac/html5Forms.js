@@ -129,7 +129,7 @@ var html5Forms = new function () {
 							}
 							
 							
-							alert(me.forceJSDatePicker)
+							
 							if (!inputSupport.date || me.forceJSDatePicker) {
 								toLoad = toLoad.concat([  
 										  scriptDir + '../../shared/js/jscalendar-1.0/calendar-win2k-1.css',
