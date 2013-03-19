@@ -40,7 +40,7 @@ var html5Forms = new function () {
 		for (var i=0; i<scriptNodes.length; i++) {
 			scriptNode = scriptNodes[i];
 			
-			if (scriptNode.src.match('html5Forms(_src|-p|)\.js')) {
+			if (scriptNode.src.match('html5Forms(_src|-p|)\.js$')) {
 				scriptNode = scriptNode;
 				scriptDir = getScriptDir();
 				if (scriptNode.src.indexOf('html5Forms-p.js') >= 0) {
@@ -129,7 +129,7 @@ var html5Forms = new function () {
 							}
 							
 							
-							
+							alert(me.forceJSDatePicker)
 							if (!inputSupport.date || me.forceJSDatePicker) {
 								toLoad = toLoad.concat([  
 										  scriptDir + '../../shared/js/jscalendar-1.0/calendar-win2k-1.css',
