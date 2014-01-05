@@ -224,15 +224,17 @@ var html5Forms = new function () {
 			for (var i=0; i<nodeNames.length; i++) {
 				var nodes = document.getElementsByTagName(nodeNames[i]);
 				
-				for (var j=0; j<nodes.length; j++) {
-					var node = nodes[j];
-					setErrorMessageEvents(node);
-					setCustomClassesEvents(node);
-					setNodeClasses(node, true);
-				}
-				
-				if (i==0 && node.type=="submit") {
-					EventHelpers.addEvent(node, 'click', submitClickEvent);
+				if (nodes.length > 0) {
+					for (var j=0; j<nodes.length; j++) {
+						var node = nodes[j];
+						setErrorMessageEvents(node);
+						setCustomClassesEvents(node);
+						setNodeClasses(node, true);
+					}
+					
+					if (i==0 && node.type=="submit") {
+						EventHelpers.addEvent(node, 'click', submitClickEvent);
+					}
 				}
 			}
 			
