@@ -21,13 +21,23 @@
  * version 1.0    - Updated to mimic CSS validation pseudo-classes, support for newer browsers
  *                  native support (IE10, Firefox 4, Webkit, Opera 11.11).  This version does rely on 
  *                  the WebForms.js framework.
+ * version 1.1    - fixed bug in Firefox (and possibly others) where this polyfill wasn't executing
+ *                  if we instructed HTML5Forms.js tried to override it.
  */
 
 if(!window.$wf2){
 var $wf2 = {};
 
+/* 
+ * do not make this polyfill active unless
+ * 
+ * a) We can determine the browser *doesn't* support WebForms 2.0, or
+ * b) html5Forms loaded this polyfill and has it's 'forceJSValidation'
+ *    property set to true.
+ */
 if(document.implementation && document.implementation.hasFeature && 
-  !document.implementation.hasFeature('WebForms', '2.0')){
+    (!document.implementation.hasFeature('WebForms', '2.0') || 
+      html5Forms && html5Forms.forceJSValidation)){
 
 $wf2 = {
 	version : '0.5.4',
@@ -468,10 +478,12 @@ $wf2 = {
 			
 			// use the native validation if the browser has it, unless 
 			// the form has a data-webforms2-force-js-validation attribute
-			// set to "true". 
+			// set to "true" *or* the browser has a bad implementation.
 			if(frm.checkValidity && !$wf2.hasBadImplementation && $wf2.getAttributeValue(frm, 'data-webforms2-force-js-validation') != 'true') {
+			    console.log('sdsd')
 				continue;
 			}
+			console.log('fff')
 			frm.checkValidity = $wf2.formCheckValidity;
 			
 			if(frm.addEventListener)
