@@ -37,7 +37,7 @@ var $wf2 = {};
  */
 if(document.implementation && document.implementation.hasFeature && 
     (!document.implementation.hasFeature('WebForms', '2.0') || 
-      html5Forms && html5Forms.forceJSValidation)){
+      window.html5Forms && html5Forms.forceJSValidation)){
 
 $wf2 = {
 	version : '0.5.4',
