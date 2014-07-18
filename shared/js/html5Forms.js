@@ -231,7 +231,7 @@ var html5Forms = new function () {
 					setNodeClasses(node, true);
 				}
 				
-				if (i==0 && node.type=="submit") {
+				if (i==0 && typeof node !== "undefined" && node.type=="submit") {
 					EventHelpers.addEvent(node, 'click', submitClickEvent);
 				}
 			}
