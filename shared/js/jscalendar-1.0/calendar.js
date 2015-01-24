@@ -33,7 +33,7 @@ Calendar = function (firstDayOfWeek, dateStr, onSelected, onClose) {
 	this.ttDateFormat = Calendar._TT["TT_DATE_FORMAT"];
 	this.isPopup = true;
 	this.weekNumbers = true;
-	this.firstDayOfWeek = typeof firstDayOfWeek == "number" ? firstDayOfWeek : Calendar._FD; // 0 for Sunday, 1 for Monday, etc.
+	this.firstDayOfWeek = typeof firstDayOfWeek == "number" ? firstDayOfWeek : (Calendar._FD ? Calendar._FD : 0); // 0 for Sunday, 1 for Monday, etc.
 	this.showsOtherMonths = false;
 	this.dateStr = dateStr;
 	this.ar_days = null;
