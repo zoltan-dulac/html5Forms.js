@@ -1,10 +1,10 @@
-@import url("http://www.useragentman.com/shared/css/useragentmanExample.css");
+@import url("useragentmanExample.css");
 @import url("basicForm.css");
 
 input[required], select[required] {
 	background: #ffffee url("../images/asterix.gif")  no-repeat left 2px !important;
 	padding-left: 1.5em;
-	width: 13.5em !important;
+	width: auto !important;
 }
 
 input[type="radio"], input[type="checkbox"] {
@@ -13,7 +13,7 @@ input[type="radio"], input[type="checkbox"] {
 }
 
 select[required] {
-	width: 15.2em !important;
+	width: auto !important;
 }
 
 input[type="radio"], input[type="checkbox"] {

@@ -207,3 +207,11 @@ form:not(.wf2-keep-native-style) ::-webkit-validation-bubble {
   -webkit-animation: bounce 0.45s 1;
    
 } */
+
+
+/* Mobile styles */
+@media only screen and (max-width: 768px) {
+	div.wf2_errorMsg {
+		min-width: 50%;	
+	}
+}

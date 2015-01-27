@@ -1,0 +1,125 @@
+body {
+	margin: 0px;	
+	padding: 0px;	
+}
+
+body#myExample {
+	font-family: "Arial", "Helvetica", sans-serif;
+}
+
+#exampleBlurb {
+	background: #2f2626 !important;
+	color: white !important;
+	font: 14px Georgia, Serif !important;
+	position: relative;
+	margin-top: -1em;
+	margin-bottom: 10px;
+	padding-top: 1em;
+	zoom: 1;
+	width: 100% !important;
+	z-index: 9999 !important;
+	line-height: 2.4em;
+	padding-bottom: 1em;
+	word-wrap: break-word;
+}
+
+#exampleBlurb p {
+	padding: 0 10px;
+	line-height: 1.7em;
+}
+
+#exampleBlurb a {
+	color: #ccccff;
+}
+
+#thirdPartyExample {
+	margin: 10px;	
+}
+
+#myExample fieldset {
+	width: 90%;
+	margin: 1em auto;
+	padding: 1em;
+	
+}
+
+#myExample legend {
+	font-weight: bold;
+	
+}
+
+.formTable {
+	width: 80%;
+	margin: 0 auto;
+}
+
+.formTable th {
+	vertical-align: top;
+	text-align: right;
+	width: 40%;
+}
+
+.formTable td,
+.formTable input,
+.formTable textarea {
+	width: 40$;
+}
+
+.formTable td input[type="checkbox"],
+.formTable td input[type="radio"] {
+	width: auto;	
+}
+
+.formTable textarea {
+	height: 16%;
+}
+
+.formTable input.small {
+	width: 8%;
+}
+
+.buttonRow {
+	text-align: center;
+}
+
+#exampleIntro {
+	opacity: 0.7;
+	position: absolute;
+	padding: 0.7em;
+	top: 0;
+	left: 0;
+          background: #2f2626 !important;
+          text-align: justify  !important;
+          color:white !important;
+          font: 14px Georgia, Serif !important;
+          position: relative;
+          zoom: 1;
+          
+          z-index: 10000 !important;
+}
+
+#exampleIntro p {
+	line-height: 2.4em;
+}
+
+#exampleIntro a {
+	color: #ccccff;
+}
+
+.initiallyHidden {
+	display: none;
+}
+
+ul.exampleList > li {
+	margin-bottom: 2em;
+}
+
+
+/*
+ * Rules for the container of the demo. 
+ */
+#exampleContent {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+}

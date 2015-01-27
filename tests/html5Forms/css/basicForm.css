@@ -5,14 +5,14 @@
 
 
 
-@import url("http://www.useragentman.com/shared/css/useragentmanExample.css");
+@import url("useragentmanExample.css");
 body {
 	font-family: "Arial", sans-serif;
 }
 
 table.formTable {
 	
-	width: 40em;
+	width: 80%;
 	margin: 0 auto;
 	overflow: none;
 }
