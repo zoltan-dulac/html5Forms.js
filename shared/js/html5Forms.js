@@ -61,7 +61,7 @@ var html5Forms = new function () {
 				if (!supportArray) {
 					return;
 				} else if (trim(supportArray) == 'all') {
-					supportArray="validation,number,color,date,ouput,range,placeholder";
+					supportArray="validation,number,color,date,output,range,placeholder";
 				}
 				
 				supportArray = supportArray.split(',');
