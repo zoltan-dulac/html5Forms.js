@@ -1,0 +1,8 @@
+{
+  "name": "html5Forms.js",
+  "description": "Implements a subset of the HTML5 Forms module, including calendars, colour swatches, sliding widgets, client side validation and more.",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/zoltan-dulac/html5Forms.js"
+  }
+}
