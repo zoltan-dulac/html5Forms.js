@@ -182,7 +182,7 @@ var visibleIf = new function(){
             var nodes = nodesToIndex[n];
             for (var i = 0; i < nodes.length; i++) {
                 var node = nodes[i];
-				var parentForm = DOMHelpers.getAncestorByTagName(node, 'form');
+				var parentForm = DOMHelpers.getAncestorByTagName(node, 'form') || document.body; //fallback to document.body if element using for attribute outside form
 				
 				
 				
@@ -337,7 +337,8 @@ var visibleIf = new function(){
         
             if (rule != null) {
             
-                //var parentForm = DOMHelpers.getAncestorByTagName(node, 'form');
+                // var parentForm = DOMHelpers.getAncestorByTagName(node, 'form') || document.body;
+
                 if (!parentForm) {
                     throw "Error: the rule " + rule + " is not attached to a form."
                 }
