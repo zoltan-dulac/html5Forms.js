@@ -1,0 +1,26 @@
+{
+  "name": "html5Forms.js",
+  "version": "1.2.0",
+  "homepage": "http://www.useragentman.com/blog/2010/07/27/creating-cross-browser-html5-forms-now-using-modernizr-webforms2-and-html5widgets-2/",
+  "authors": [
+    "Zoltan Hawryluk <zoltan.dulac@gmail.com>"
+  ],
+  "description": "HTML5Forms is a polyfill for the HTML5 Forms specification.  It also corrects problems with existing native implementations.",
+  "main": "shared/js/html5Forms.js",
+  "keywords": [
+    "html5Forms",
+    "html5Widgets",
+    "$wf2",
+    "fdSliderController",
+    "Calendar",
+    "jscolor"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ]
+}
