@@ -33,50 +33,50 @@
 			</p>
 		</div>
 		
-		<fieldset>
-			<legend>Personal Information</legend>
 		
-		<p>Thank you for giving to the Zoltan Hawryluk Entertainment Fund.  Your
-		contribution will ensure that Webmasters in Need will be able to buy
-		beer when they would otherwise do without.</p>
-		
-		<p>Form fields labelled <img src="images/asterix.gif" alt="*"/> are mandatory</p>
 		<form action="http://www.useragentman.com/testForm.php">
-			<table class="formTable">
-				<tr>
-					<th>Full Name: </th>
-					<td><input type="text" name="fullName" value="" required="required"  />
+			<fieldset>
+				<legend>Personal Information</legend>
+			
+				<p>Thank you for giving to the Zoltan Hawryluk Entertainment Fund.  Your
+				contribution will ensure that Webmasters in Need will be able to buy
+				beer when they would otherwise do without.</p>
+				
+				<p>Form fields labelled <img src="images/asterix.gif" alt="*"/> are mandatory</p>
+				<div class="field-container">
+					<label for="full-name">Full Name:</label>
+					<input type="text" id="full-name" name="fullName" value="" required="required" labelledby="full-name" />
 					<div class="description"><strong>Required.</strong> If you would like to give anonymously,
 					tough.  We find people are more generous when their Good
 					Name is on the line.</div>
-					</td>
-				</tr>
-				
-				<tr>
-					<th>Company Name: </th>
-					<td><input type="text" name="companyName" value=""  />
+				</div>
+			
+			
+				<div class="field-container">
+					<label for="">Company Name: </label>
+					<input type="text" name="companyName" value=""  />
 					<div class="description">If you are unemployed, please leave 
 					blank.</div>
-					</td>
-				</tr>
-				
-				<tr>
-					<th>Zip Code</th>
-					<td><input type="text" name="postalCode" value="" required="required" 
+				</div>
+			
+			
+				<div class="field-container">
+					<label for="">Zip Code</label>
+					<input type="text" name="postalCode" value="" required="required" 
 						pattern="(\d{5}([\-]\d{4})?)"
 					/>
 					<div class="description">Please enter a valid American zip code. 
 					Valid format is <strong>nnnnn</strong> or <strong>nnnnn-nnnn</strong>
 					where <strong>n</strong>
 					is a numeric digit.</div>
+				</div>
+				
+			
+			
+				
+				<input type="submit" value="Next &gt;"/>
 					
-					</td>
-				</tr>
-				<tr>
-					<td></td>
-					<td><input type="submit" value="Next &gt;"/></td>
-				</tr>
-			</table>
+				</table>
 			</fieldset>
 		</form>
 		

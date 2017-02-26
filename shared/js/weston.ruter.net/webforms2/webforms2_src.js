@@ -58,13 +58,8 @@ $wf2 = {
 	callAfterDOMContentLoaded: new Array(),
 	
 	
-	onDOMContentLoaded : function(){
-		
-		if($wf2.isInitialized)
-			return;
-		
-		$wf2.isInitialized = true;  //Safari needs this here for some reason
-		
+	onDOMContentLoaded : function() {
+		console.log('xxxx');
 		var i,j,k,node;
 		
 		//set global event for fireEvent method
@@ -480,10 +475,8 @@ $wf2 = {
 			// the form has a data-webforms2-force-js-validation attribute
 			// set to "true" *or* the browser has a bad implementation.
 			if(frm.checkValidity && !$wf2.hasBadImplementation && $wf2.getAttributeValue(frm, 'data-webforms2-force-js-validation') != 'true') {
-			    console.log('sdsd')
 				continue;
 			}
-			console.log('fff')
 			frm.checkValidity = $wf2.formCheckValidity;
 			
 			if(frm.addEventListener)
@@ -492,7 +485,7 @@ $wf2 = {
 				frm.attachEvent('onsubmit', $wf2.onsubmitValidityHandler);
 		}
 		
-		var ctrl, ctrls = $wf2.getElementsByTagNames.apply(parent, ['input','select','textarea', 'button']);//parent.getElementsByTagName([i]);
+		var ctrl, ctrls = $wf2.getElementsByTagNames.apply(parent, ['input','select','textarea', 'button']);
 		for(i = 0; ctrl = ctrls[i]; i++){
 			$wf2.applyValidityInterface(ctrl);
 			$wf2.updateValidityState(ctrl); //ctrl._updateValidityState();
@@ -591,20 +584,8 @@ $wf2 = {
 			}
 			//Then, each element in this list whose willValidate DOM attribute is true is checked for validity
 			if(el.checkValidity && el.willValidate){
-				if(!el.checkValidity() && el.checkValidity() != undefined) {
+				if(el.checkValidity() === false) {
 					valid = false;
-					
-					/* var oninvalid = el.getAttribute('oninvalid');
-					if (oninvalid) {
-						oninvalid();
-					} */
-					
-					
-					/* we change this to only show the first error.
-					if (!$wf2.showAllErrors) {
-						break;
-					}
-					*/
 				}
 			}
 		}
@@ -657,7 +638,6 @@ $wf2 = {
 				//console.log(elPos.y + errorMsgHeight, maxBottom)
 				//NOTE: We should only do this if the control's style.bottom == 0
 				if (doScroll && elPos.y + errorMsgHeight > maxBottom) {
-					
 					scrollBy(0, errorMsgHeight );
 				}
 			}
@@ -671,9 +651,6 @@ $wf2 = {
 	},
 	
 	controlCheckValidityOfElement: function (el) {
-		
-	
-		
 		$wf2.updateValidityState(el);
 		
 		if (el.validity.valid) {
@@ -740,7 +717,7 @@ $wf2 = {
 		}
 
 		//Do default action
-		if(!canceled && !hasInvalidIndicator) //(!(el.form && el.form[el.name]) || !el.form[el.name].wf2HasInvalidIndicator)
+		if(!canceled && !hasInvalidIndicator)
 			$wf2.addInvalidIndicator(el);
 		return false;
 	},
@@ -1363,7 +1340,6 @@ $wf2 = {
 	onsubmitValidityHandler : function(event){
 		var frm = event.currentTarget || event.srcElement;
 		var r;
-		
 		// call routines other libraries have set to be run before
 		// validation.
 		for (var i=0; i<$wf2.callBeforeValidation.length; i++) {
@@ -1467,6 +1443,50 @@ $wf2 = {
 				return value;
 		}
 	},
+	
+	getAttrListReString: function (attrValue) {
+		return '\\s'+attrValue+'\\s|^' + attrValue + '\\s|\\s' + attrValue + '$|' + '^' + attrValue +'$';
+	},
+	
+	isInAttrList: function(el, attrName, attrValue) {
+		attrValue = attrValue.trim();
+		if (attrValue === '') {
+			return false;
+		}
+		
+		var re = new RegExp($wf2.getAttrListReString(attrValue) , "g");
+	
+		return re.test(el.getAttribute(attrName, attrValue));
+	},
+	
+	addToAttrList: function(el, attrName, attrValue) {
+		attrValue = attrValue.trim();
+		if (attrValue === '') {
+			return;
+		}
+		
+		// only add labelledBy if the object is not a member of it yet.
+		if (!$wf2.isInAttrList(el, attrName, attrValue)) {
+			var origAttrList = el.getAttribute(attrName) || '';
+			el.setAttribute(attrName, origAttrList + ' ' + attrValue);
+		}
+	},
+	
+	removeFromAttrList: function(el, attrName, attrValue) {
+		attrValue = attrValue.trim();
+		if (attrValue === '') {
+			return; 
+		}
+		
+		
+		var re = new RegExp($wf2.getAttrListReString(attrValue) , "g");
+		
+		var attrList = el.getAttribute(attrName);
+	
+		if (attrList) {
+			el.setAttribute(attrName, attrList.replace(re, ' '));
+		}
+	},
 
 	addInvalidIndicator : function(target){
 		//show contextual help message
@@ -1492,6 +1512,8 @@ $wf2 = {
 		
 		//msg.title = "Close";
 		msg.id = (target.id || target.name) + '_wf2_errorMsg'; //QUESTION: does this work for MSIE?
+		
+		$wf2.addToAttrList(target, 'aria-labelledby', msg.id);
 		msg.onmousedown = function(){
 			this.parentNode.removeChild(this);
 		};
@@ -2545,7 +2567,11 @@ for(var i = 0; i < scripts.length; i++){
 		$wf2.libpath = match[1];
 }
 
-EventHelpers.addPageLoadEvent('$wf2.onDOMContentLoaded', true)
+if (/loaded|complete|interactive/.test(document.readyState)) {
+	$wf2.onDOMContentLoaded();
+} else {
+	document.addEventListener("DOMContentLoaded", $wf2.onDOMContentLoaded, null);
+}
 
 })();
 } //End If(!document.implementation...

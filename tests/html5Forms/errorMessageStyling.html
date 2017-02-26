@@ -93,31 +93,41 @@
 		
 				<p>It is important you fill out <strong>all</strong> of the information in this form.</p>
 				
-			<table class="formTable">
-				<tr>
-					<th>Full Name :</th>
-					<td><input type="text" name="fullName" value="" required="required" placeholder="Required information" 
-						oninvalid="this.setCustomValidity('Yo, Bro! You forgot to fill out this field!')" 
-						onkeydown="this.setCustomValidity('')"/>
+				<div class="field-container">
+					<label id="fullName-label" for="fullName">Full Name :</label>
+					<input
+						type="text"
+						id="fullName"
+						name="fullName"
+						value=""
+						required="required"
+						aria-labelledby="fullName-label"
+						placeholder="Required information" 
+						data-errormessage="Yo, Bro! You forgot to fill out this field!" 
+					/>
 					<div class="description"></div>
-					</td>
-				</tr>
+					
+				</div>
 				
-				<tr>
-					<th>Company Name :</th>
-					<td><input type="text" name="companyName" required="required" value="" 
-						oninvalid="this.setCustomValidity('Don\'t forget this field either, Holmes!')"
-						onkeydown="this.setCustomValidity('')"
-						 />
+				<div class="field-container">
+					<label id="companyName-label" for="companyName">Company Name :</label>
+					<input
+						type="text"
+						id="companyName"
+						name="companyName"
+						required="required"
+						aria-labelledby="companyName-label"
+						value="" 
+						data-errormessage="Don't forget this field either, Holmes!"
+					/>
 					<div class="description"></div>
-					</td>
-				</tr>
+					
+				</div>
 				
 				
-				<tr>
-					<td></td>
-					<td><input type="submit" value="Submit Information"/></td>
-				</tr>
+				<div class="field-container">
+					<input type="submit" value="Submit Information"/>
+				</div>
 			</table>
 			</fieldset>
 		</form>
