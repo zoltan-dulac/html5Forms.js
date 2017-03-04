@@ -21,18 +21,6 @@ table.formTable input, table.formTable .description {
 	width: 15em;	
 }
 
-table.formTable input.range {
-	
-	width: 11em !important;
-}
-
-output.withRange {
-	display: block;
-	float: left;
-	margin-right: 0em;
-	width: 3em;
-	
-}
 
 table.formTable th, table.formTable td {
 	padding: 0.4em 0.1em;

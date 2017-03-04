@@ -5,13 +5,12 @@ var html5Forms = new function () {
 		scriptDir = null,
 		isScriptCompressed = false,
 		bodyEl,
+		globalEvent = document.createEvent("HTMLEvents"),
 		
 		// WebKit less than 534 doesn't show validation UI - we need to check for this (from http://stackoverflow.com/questions/6030522/html5-form-validation-modernizr-safari)
 		hasNativeBubbles = navigator.userAgent.indexOf('WebKit') < 0 || parseInt(navigator.userAgent.match(/AppleWebKit\/([^ ]*)/)[1].split('.')[0])  > 534,
 		hasBadValidationImplementation = !hasNativeBubbles;  // making another var for this in case we have more criteria in the future.
 		
-	
-	var globalEvent = document.addEventListener?document.createEvent("HTMLEvents"):null;
 	
 	function getBrowserLanguage() {
 		var r = navigator.language;
@@ -25,7 +24,9 @@ var html5Forms = new function () {
 		var scriptNodes = document.getElementsByTagName('script');
 		
 		bodyEl=document.body;
-		console.log('bodyEl', bodyEl);
+		
+		/* This is for fireEvent */
+		me.globalEvent = document.createEvent("HTMLEvents");
 		
 		for (var i=0; i<scriptNodes.length; i++) {
 			scriptNode = scriptNodes[i];
@@ -45,12 +46,12 @@ var html5Forms = new function () {
 				var inputSupport = Modernizr.inputtypes;
 				/* let's load the supporting scripts according to what is in data-webforms2-support */
 				var supportArray = scriptNode.getAttribute('data-webforms2-support');
-				me.forceJSValidation = (scriptNode.getAttribute('data-webforms2-force-js-validation') == 'true');
-				me.turnOffValidation = (scriptNode.getAttribute('data-webforms2-turn-off-validation') == 'true');
-				me.forceJSDatePicker = (scriptNode.getAttribute('data-webforms2-force-js-date-picker') == 'true');
+				me.forceJSValidation = (scriptNode.getAttribute('data-webforms2-force-js-validation') === 'true');
+				me.turnOffValidation = (scriptNode.getAttribute('data-webforms2-turn-off-validation') === 'true');
+				me.forceJSDatePicker = (scriptNode.getAttribute('data-webforms2-force-js-date-picker') === 'true');
 				if (!supportArray) {
 					return;
-				} else if (trim(supportArray) == 'all') {
+				} else if (trim(supportArray) === 'all') {
 					supportArray="validation,number,color,date,ouput,range,placeholder";
 				}
 				
@@ -69,7 +70,7 @@ var html5Forms = new function () {
 						case "autofocus":
 							if (me.turnOffValidation) {
 								//me.turnOffNativeValidation();
-								EventHelpers.addPageLoadEvent('html5Forms.turnOffNativeValidation')
+								EventHelpers.addPageLoadEvent('html5Forms.turnOffNativeValidation');
 							} else {
 						
 								if (!Modernizr.input.required || hasBadValidationImplementation || me.forceJSValidation) {
@@ -82,7 +83,7 @@ var html5Forms = new function () {
 											scriptDir + '../../shared/js/weston.ruter.net/webforms2/webforms2_src.js']);
 									}
 									
-									if (supportReq == 'autofocus') {
+									if (supportReq === 'autofocus') {
 										loadHTML5Widgets = true;
 									}
 									
@@ -161,7 +162,7 @@ var html5Forms = new function () {
 				}
 				
 				
-				if (toLoad.length == 0) {
+				if (toLoad.length === 0) {
 					loadWidgets();
 					
 					// allow browsers that don't need webforms2 to handle custom error messages populated
@@ -179,7 +180,7 @@ var html5Forms = new function () {
 					});
 				}
 			}
-		}
+		};
 		
 		function loadWidgets() {
 			
@@ -209,26 +210,17 @@ var html5Forms = new function () {
 		 * 3) settung up form.wf2_submitAttempted
 		 */
 		function setupExtraFeatures() {
-			var nodeNames = ["input", "select", "textarea"];
-			for (var i=0; i<nodeNames.length; i++) {
-				var nodes = document.getElementsByTagName(nodeNames[i]);
-				
-				for (var j=0; j<nodes.length; j++) {
-					var node = nodes[j];
-					setErrorMessageEvents(node);
-					setCustomClassesEvents(node);
-					setNodeClasses(node, true);
-				}
-				
-				if (i==0 && node && node.type=="submit") {
-					node.addEventListener('click', submitClickEvent);
-				}
-			}
+			setErrorMessageEvents(node);
+			setCustomClassesEvents(node);
+			bodyEl.addEventListener('click', submitClickEvent, true);
+			bodyEl.addEventListener('submit', submitEvent, true);
+			bodyEl.addEventListener('reset', resetEvent, true);
 			
-			var forms = document.getElementsByTagName('form');
-			for (var i=0; i<forms.length; i++) {
-				forms[i].addEventListener('submit', submitEvent);
-				forms[i].addEventListener('reset', resetEvent);
+			var nodes = document.querySelectorAll(':enabled, :disabled');
+			
+			for (var j=0; j<nodes.length; j++) {
+				var node = nodes[j];
+				setNodeClasses(node, true);
 			}
 		}
 		
@@ -240,11 +232,16 @@ var html5Forms = new function () {
 		function resetEvent(e) {
 			var target = e.currentTarget;
 			
-			resetForm(target);
+			if (target.nodeName === 'FORM') {
+				resetForm(target);
+			}
 		}
 		function submitClickEvent(e) {
 			var target = e.currentTarget;
-			markSubmitAttempt(target.form);
+			
+			if (target && target.form && target.type === "submit") {
+				markSubmitAttempt(target.form);
+			}
 		}
 		
 		function markSubmitAttempt(form) {
@@ -257,25 +254,23 @@ var html5Forms = new function () {
 		
 		function resetForm(form) {
 			removeSubmitAttempt(form);
-			var nodeNames = ["input", "select", "textarea"];
-			for (var i=0; i<nodeNames.length; i++) {
-				var nodes = form.getElementsByTagName(nodeNames[i]);
+			
+			var nodes = form.querySelectorAll(':enabled, :disabled');
+			
+			for (var j=0; j<nodes.length; j++) {
+				var node = nodes[j];
 				
-				for (var j=0; j<nodes.length; j++) {
-					var node = nodes[j];
-					
-					node.classList.remove('wf2_lostFocus');
-					node.classList.remove('wf2_notBlank');
-					node.classList.add('wf2_isBlank');
-				}
-				
+				node.classList.remove('wf2_lostFocus');
+				node.classList.remove('wf2_notBlank');
+				node.classList.add('wf2_isBlank');
 			}
+				
 		}
 		
-		function setCustomClassesEvents(node) {
-			node.addEventListener('keyup', nodeChangeEvent);
-			node.addEventListener('change', nodeChangeEvent);
-			node.addEventListener('blur', nodeBlurEvent);
+		function setCustomClassesEvents() {
+			bodyEl.addEventListener('keyup', nodeChangeEvent);
+			bodyEl.addEventListener('change', nodeChangeEvent);
+			bodyEl.addEventListener('blur', nodeBlurEvent);
 		}
 		
 		function nodeChangeEvent(e) {
@@ -293,12 +288,12 @@ var html5Forms = new function () {
 				node.classList.remove('wf2_isBlank');
 			}
 			
-			if (isLoadEvent && node.nodeName == 'SELECT') {
+			if (isLoadEvent && node.nodeName === 'SELECT') {
 				node.setAttribute('data-wf2-initialvalue', node.value)
 			}
 			
-			if ((node.nodeName == 'SELECT' && node.getAttribute('data-wf2-initialvalue') !== node.value)
-			    || (node.nodeName != 'SELECT' && node.getAttribute('value', node.value))) {
+			if ((node.nodeName === 'SELECT' && node.getAttribute('data-wf2-initialvalue') !== node.value)
+			    || (node.nodeName !== 'SELECT' && node.getAttribute('value', node.value))) {
 				node.classList.remove('wf2_defaultValue');
 				node.classList.add('wf2_notDefaultValue');
 			} else {
@@ -368,16 +363,15 @@ var html5Forms = new function () {
 	}
 	
 	me.turnOffNativeValidation = function () {
-			
-			var formNodes = document.getElementsByTagName('form');
-			for (var i=0; i<formNodes.length; i++) {
-				formNodes[i].setAttribute('novalidate', 'novalidate');
-			}
+		var formNodes = document.getElementsByTagName('form');
+		for (var i=0; i<formNodes.length; i++) {
+			formNodes[i].setAttribute('novalidate', 'novalidate');
 		}
+	}
 	
 	var supportsOutput = function () {
 		var outputEl = document.createElement('output');
-		return (outputEl.value != undefined && (outputEl.onforminput !== undefined || outputEl.oninput !== undefined));
+		return (outputEl.value !== undefined && (outputEl.onforminput !== undefined || outputEl.oninput !== undefined));
 		
 	}
 	
@@ -389,6 +383,37 @@ var html5Forms = new function () {
 	}
 	
 	
+	me.isEventSupported = function(eventName, nodeName) {
+		var el = document.createElement(nodeName);
+		eventName = 'on' + eventName;
+		var isSupported = ( eventName in el);
+		if (!isSupported) {
+			el.setAttribute(eventName, 'return;');
+			isSupported = typeof el[eventName] == 'function';
+		}
+		el = null;
+		return isSupported;
+	}
+
+	me.fireEvent = function (element,event, options){
+		if(!element) {
+			return;
+		}
+		
+		// dispatch for firefox + ie9 + others
+		globalEvent.initEvent(event, true, true); // event type,bubbling,cancelable
+		return !element.dispatchEvent(globalEvent);
+	}
+	
+	me.getKey = function(e){
+		if (e.keyCode) {
+			return e.keyCode;
+		} else if (e.event && e.event.keyCode) {
+			return window.event.keyCode;
+		} else if (e.which) {
+			return e.which;
+		}
+	}
 	
 	var initWhitespaceRe = /^\s\s*/;
 	var endWhitespaceRe = /\s\s*$/;
@@ -397,6 +422,6 @@ var html5Forms = new function () {
 		return str.replace(initWhitespaceRe, '')
 			.replace(endWhitespaceRe, '');
 	}  
-}
+};
 
 window.addEventListener('load', html5Forms.init);

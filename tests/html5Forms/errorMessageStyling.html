@@ -102,10 +102,14 @@
 						value=""
 						required="required"
 						aria-labelledby="fullName-label"
+						aria-describedby="fullName-desc"
 						placeholder="Required information" 
-						data-errormessage="Yo, Bro! You forgot to fill out this field!" 
+						data-errormessage="Yo, Bro! You forgot to fill out this field!"
 					/>
-					<div class="description"></div>
+					<div id="fullName-desc" class="description">
+						This <strong>must</strong> be our full legal name as it appears 
+						on your birth certificate.
+					</div>
 					
 				</div>
 				
@@ -117,10 +121,14 @@
 						name="companyName"
 						required="required"
 						aria-labelledby="companyName-label"
+						aria-describedby="companyName-desc"
 						value="" 
 						data-errormessage="Don't forget this field either, Holmes!"
 					/>
-					<div class="description"></div>
+					<div id="companyName-desc" class="description">
+						This <strong>must</strong> be the name of your company as it
+						appears on legal documentation.
+					</div>
 					
 				</div>
 				

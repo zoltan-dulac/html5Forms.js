@@ -1,186 +1,206 @@
 <!DOCTYPE html>
 <html lang="en">
-    <head>
-        <meta name="generator" content="HTML Tidy, see www.w3.org">
-        <meta http-equiv="Content-Type" content=
-        "text/html; utf-8">
+	<head>
+		<meta name="generator" content="HTML Tidy, see www.w3.org">
+		<meta http-equiv="Content-Type" content=
+		"text/html; utf-8">
 
-        <title>html5Widgets Test Form</title>
+		<title>html5Widgets Test Form</title>
 		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-		
+
 		<!-- This CSS file is not necessary to use html5Widgets -->
 		<link type="text/css" rel="stylesheet" href="../../shared/css/useragentmanExample.css">
+
 		
-		
-		<link type="text/css" rel="stylesheet" href="css/basicForm.css" />
-		
+		<link type="text/css" rel="stylesheet" href="css/form.css" /
+
 		<!-- This style sheet can be used as a basis to create validation-state styles -->
 		<link type="text/css" rel="stylesheet" href="css/validity.css" />
-		
-       <!-- Needed for Forms Feature Detection -->
-		<script type="text/javascript" src="../../shared/js/modernizr.com/Modernizr-2.5.3.forms.js">
-		</script>
-		
-		<!-- Needed for Validation --> 
-		<script type="text/javascript" src="../../shared/js/html5Forms.js" data-webforms2-support="all" data-webforms2-force-js-validation="true">
-		</script>
-		
-    </head>
 
-    <body id="myExample" class="html5Widgets-debug">
-    	<div id="exampleBlurb">
-    		<p>The following shows a variety of HTML5 form elements, including 
-			<code>color</code>.  The form uses <code>HTML5Widgets</code> and
-			Weston Ruter's  <code>webforms2</code> to add HTML5 Forms support to 
-			browsers that don't currently support it.  Browsers that partially
-			support the specification will use native functionality where applicable.
-			<a href="http://www.useragentman.com/blog/?p=1110">Back to User Agent Man HTML5 Forms article </a></p>
-    	</div>
-		
-        <form method="get" action="http://www.useragentman.com/testForm.php" >
-        	
+		<!-- Needed for Forms Feature Detection -->
+		<script type="text/javascript" src="../../shared/js/modernizr.com/Modernizr-2.5.3.forms.js"></script>
+
+		<!-- Needed for Validation -->
+		<script type="text/javascript" src="../../shared/js/html5Forms.js" data-webforms2-support="all" data-webforms2-force-js-validation="true"></script>
+
+	</head>
+
+	<body id="myExample" class="html5Widgets-debug">
+		<div id="exampleBlurb">
+			<p>
+				The following shows a variety of HTML5 form elements, including <code>
+					color</code>
+				.  The form uses <code>
+					HTML5Widgets</code>
+				and
+				Weston Ruter's <code>
+					webforms2</code> to add HTML5 Forms support to
+				browsers that don't currently support it.  Browsers that partially
+				support the specification will use native functionality where applicable.
+				<a href="http://www.useragentman.com/blog/?p=1110">Back to User Agent Man HTML5 Forms article </a>
+			</p>
+		</div>
+
+		<form method="get" action="http://www.useragentman.com/testForm.php" data-webforms2-force-js-validation="true">
+
 			<fieldset>
-				<legend>HTML5Widgets Test Form</legend>
-				<p>Form fields labelled <img src="images/asterisk_orange.png" alt="*"/> are mandatory.</p>
-            <table class="formTable">
-                <tbody>
-                	<tr>
-                		<th>Legal Name:</th>
-						<td><input type="text" name="name" value="" autofocus="autofocus" required="required" />
-						<div class="description">This field has focus when the page
-						first loads because it has it's <code>autofocus</code>
-						attribute set to <code>true</code>.
-						</td>
-					</tr>
-					
-                	<tr>
-                		<th>Company Name:</th>
-						<td><input type="text" name="placeholderEl" value="" required="required"
-						placeholder="Leave blank if unemployed" />
-						<div class="description">This field has it's 
-						<code>placeholder</code> attribute set to 
-						<code>"Leave blank if unemployed"</code>
-						
-						</td>
-					</tr>
-					
-                    <tr>
-                        <th>Age:</th>
-
-                        <td>
-                        
-                        <output class="withRange" onforminput="this.value = parseInt(rangeEl.value)" 
-							>-</output>	
+				<legend>
+					HTML5Widgets Test Form
+				</legend>
+				<p>
+					Form fields labelled <img src="images/asterisk_orange.png" alt="*"/> are mandatory.
+				</p>
+				
+						<div class="field-container">
+							<label for="">Legal Name:</label>
 							
-						<input type="range"  name="rangeEl" value=""
-                        min="0" max="150" class="range" />
-						
-						
-						</td>
-                    </tr>
-
-                    
-
-                    <tr>
-                        <th>Date/Time (Local)</th>
-
-                        <td><input type="datetime-local" name="DateTimeLocalTest" required="required" value=
-                        "">
-						<div class="description">The <code>datetime</code>,
-						<code>date</code>, <code>week</code> and <code>month</code>
-						input fields all show a calendar when clicked on.  When 
-						the user chooses a date, each input shows the date in
-						a slightly different format.
+							<input type="text" name="name" value="" autofocus="autofocus" required="required" />
+							<div class="description">
+								This field has focus when the page
+								first loads because it has it's <code>
+									autofocus</code>
+								attribute set to <code>
+									true</code>
+								.
+							
 						</div>
-						
-						</td>
-                    </tr>
-					
-					<tr>
-                        <th>Date/Time (UTC)</th>
 
-                        <td><input type="datetime" name="DateTimeTest" required="required" value=
-                        "">
-						<div class="description">The <code>datetime</code>,
-						<code>date</code>, <code>week</code> and <code>month</code>
-						input fields all show a calendar when clicked on.  When 
-						the user chooses a date, each input shows the date in
-						a slightly different format.
+						<div class="field-container">
+							<label for="">Company Name:</label>
+							
+							<input type="text" name="placeholderEl" value="" required="required"
+							placeholder="Leave blank if unemployed" />
+							<div class="description">
+								This field has it's <code>
+									placeholder</code>
+								attribute set to <code>
+									"Leave blank if unemployed"</code>
+
+							
 						</div>
-						
-						</td>
-                    </tr>
 
-                    <tr>
-                        <th>Date</th>
+						<div class="field-container">
+							<label for="">Age:</label>
 
-                        <td><input type="date" name="DateTest" required="required" value=
-                        ""></td>
-                    </tr>
+							
+							
+							<input type="range"  name="rangeEl" value=""
+							min="0" max="150" class="range" />
+							<output class="withRange" onforminput="this.value = parseInt(rangeEl.value)"
+							>
+								-
+							</output>
+						</div>
 
-                    <tr>
-                        <th>Month</th>
+						<div class="field-container">
+							<label for="">Date/Time (Local)</label>
 
-                        <td><input type="month" name="MonthTest" required="required" value=
-                        ""></td>
-                    </tr>
+							
+							<input type="datetime-local" name="DateTimeLocalTest" required="required" value=
+							"">
+							<div class="description">
+								The <code>
+									datetime</code>
+								, <code>
+									date</code>
+								, <code>
+									week</code>
+								and <code>
+									month</code>
+								input fields all show a calendar when clicked on.  When
+								the user chooses a date, each input shows the date in
+								a slightly different format.
+							</div>
+						</div>
 
-                    <tr>
-                        <th>Week</th>
+						<div class="field-container">
+							<label for="">Date/Time (UTC)</label>
 
-                        <td><input type="week" name="WeekTest" required="required" value=
-                        ""></td>
-                    </tr>
+							
+							<input type="datetime" name="DateTimeTest" required="required" value=
+							"">
+							<div class="description">
+								The <code>
+									datetime</code>
+								, <code>
+									date</code>
+								, <code>
+									week</code>
+								and <code>
+									month</code>
+								input fields all show a calendar when clicked on.  When
+								the user chooses a date, each input shows the date in
+								a slightly different format.
+							</div>
+						</div>
 
-                  
+						<div class="field-container">
+							<label for="">Date</label>
 
+							
+							<input type="date" name="DateTest" required="required" value=
+							"">
+							
+						</div>
 
-                    <tr>
-                        <th>Colour</th>
+						<div class="field-container">
+							<label for="">Month</label>
 
-                        <td><input type="color" name="ColorTest" required="required" value=
-                        "" ></td>
-                    </tr>
-					
-					<tr>
-						<th>Test validity</th>
-						<td><input type="text" name="safasfas" value="" pattern="[0-9]*" required="required" placeholder="Required Field"
+							
+							<input type="month" name="MonthTest" required="required" value=
+							"">
+							
+						</div>
+
+						<div class="field-container">
+							<label for="">Week</label>
+
+							
+							<input type="week" name="WeekTest" required="required" value=
+							"">
+							
+						</div>
+
+						<div class="field-container">
+							<label for="">Colour</label>
+
+							
+							<input type="color" name="ColorTest" required="required" value=
+							"" >
+							
+						</div>
+
+						<div class="field-container">
+							<label for="">Test validity</label>
+							
+							<input type="text" name="safasfas" value="" pattern="[0-9]*" required="required" placeholder="Required Field"
 							data-errormessage="You must enter a number here." />
-						<div class="description">To test the <strong>required</strong> and <strong>pattern</strong>
-						attributes, this field only accepts numbers.</div>
-						
-						</td>
-					</tr>
-					
-					<tr>
-						<th>Terms and Conditions:</th>
-						<td>
-							I promise to give my first born to The Evil Corporation
+							<div class="description">
+								To test the <strong>required</strong> and <strong>pattern</strong>
+								attributes, this field only accepts numbers.
+							</div>
+						</div>
+
+						<div class="field-container">
+							<label for="">Terms and Conditions:</label>
+							 I promise to give my first born to The Evil Corporation
 							in return for a free iPad.
 							<br />
 							<br />
-							<label><input type="checkbox" class="check" name="iAgree" value="yesDammitYes" required="required"  
-								data-errormessage="Sorry, but you must submit to your new evil overlord in order to continue."/>I submit to my new evil overlord</label>
-							
+							<label>
+								<input type="checkbox" class="check" name="iAgree" value="yesDammitYes" required="required"
+								data-errormessage="Sorry, but you must submit to your new evil overlord in order to continue."/>
+								I submit to my new evil overlord</label>
+
+						</div>
 						
-						</td>
-						
-					</tr>
-					<tr>
-						<th></th>
-						<td >
 							<input type="submit" name="submit me" value="Submit" />
-						</td>
-					</tr>
+							
+
 					
-                </tbody>
-            </table>
-            </fieldset>
-        </form>
-		
-		<div id="supports">
-			
-		</div>
-    </body>
+			</fieldset>
+		</form>
+
+	</body>
 </html>
 

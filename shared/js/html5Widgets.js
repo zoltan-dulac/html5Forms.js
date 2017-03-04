@@ -34,7 +34,7 @@ var html5Widgets = new function(){
 	var dummyIDCount = 0;
 	var supportsNatively = new Object();
 	
-	var isBadChrome = navigator.userAgent.indexOf('Chrome');
+	var isBadChrome = (navigator.userAgent.indexOf('Chrome') > 0);
 	var valueRe = /this\.value/g;
 	var varRe = /([a-zA-Z][a-zA-Z0-9]*\.value)/g;
 	var isDebug;
@@ -51,13 +51,10 @@ var html5Widgets = new function(){
 	
 	me.init = function(){
 		
-		if (EventHelpers.hasPageLoadHappened(arguments)) {
-			return;
-		}
 		
-		supportsNatively['oninput'] = EventHelpers.isSupported('input', 'form');
+		supportsNatively['oninput'] = html5Forms.isEventSupported('input', 'form');
 		
-		isDebug = CSSHelpers.isMemberOfClass(document.body, 'html5Widgets-debug')
+		isDebug = document.body.classList.contains('html5Widgets-debug')
 		
 		// dummy link setup
 		me.type = 'text'
@@ -74,12 +71,6 @@ var html5Widgets = new function(){
 		insertElements(); 
 		
 		me.resolveOutputs();
-		
-		/* document.getElementById('supports').innerHTML = 
-			DebugHelpers.getProperties(Modernizr.inputtypes, 'inputtypes') + " " +
-			DebugHelpers.getProperties(Modernizr.input, 'input') + " " + 
-			DebugHelpers.getProperties(Modernizr, 'Modernizr'); */
-		
 	}
 	
 	
@@ -97,7 +88,7 @@ var html5Widgets = new function(){
 			for (var j=0; j<nodes[i].length; j++) {
 				var node = nodes[i][j];
 				
-				if (DOMHelpers.getAttributeValue(node, 'placeholder')) {
+				if (node.getAttribute('placeholder')) {
 					me.placeholderNodes.push(new PlaceholderInput(node));
 				}
 			}
@@ -136,9 +127,9 @@ var html5Widgets = new function(){
 		for (var i=0; i<formElements.length; i++) {
 			var formElement = formElements[i];
 			// first - set event to resolve output tags
-			EventHelpers.addEvent(formElement, 'change', me.resolveOutputs);
-			EventHelpers.addEvent(formElement, 'keyup', me.resolveOutputs);
-			EventHelpers.addEvent(formElement, 'cut', me.resolveOutputs);
+			formElement.addEventListener('change', me.resolveOutputs);
+			formElement.addEventListener('keyup', me.resolveOutputs);
+			formElement.addEventListener('cut', me.resolveOutputs);
 		}	
 	}
 		
@@ -171,7 +162,7 @@ var html5Widgets = new function(){
 			
 			
 			//var elType = getAttributeValue(formElement, 'type');
-			var elType = DOMHelpers.getAttributeValue(formElement, 'type');
+			var elType = formElement.getAttribute('type');
 			//jslog.debug(elType)
 			if (!formElement.name) {
 				formElement.name = getNextDummyID();
@@ -247,7 +238,7 @@ var html5Widgets = new function(){
 				
 				delayEventTimeout = setTimeout(
 					function(){
-						EventHelpers.fireEvent(el, ev);
+						html5Forms.fireEvent(el, ev);
 						
 						if (callback) {
 							callback();
@@ -259,7 +250,7 @@ var html5Widgets = new function(){
 		}
 		
 	me.fireEvent = function(el, ev){
-		EventHelpers.fireEvent(el, ev);
+		html5Forms.fireEvent(el, ev);
 	}
 	
 	me.resolveOutputs = function (e) {
@@ -274,7 +265,7 @@ var html5Widgets = new function(){
 		if (!supportsNatively['oninput']) {
 			for (var i=0; i<me.formElements.length; i++) {
 				var formNode = me.formElements[i];
-				var oninput = DOMHelpers.getAttributeValue(formNode, 'oninput');
+				var oninput = formNode.getAttribute('oninput');
 				if (oninput) {
 					eval(me.getValueFormula(oninput, formNode));
 				}
@@ -282,17 +273,17 @@ var html5Widgets = new function(){
 		} else if (isIE9 && e) {
 			// must deal with buggy implementation - delete and backspace don't fire
 			// the oninput event
-			var input = EventHelpers.getEventTarget(e);
+			var input = e.currentTarget;
 			switch (e.type) {
 				
 				case "keyup":
-					var key = EventHelpers.getKey(e);
+					var key = html5Forms.getKey(e);
 					
 					switch (key) {
 						case 8:
 						case 46:
 						case 88:
-							EventHelpers.fireEvent(input.form, 'input');
+							html5Forms.fireEvent(input.form, 'input');
 					}
 					break;
 				case "cut":
@@ -347,8 +338,8 @@ var html5Widgets = new function(){
 		
 		function init (){
 			parentForm = DOMHelpers.getAncestorByTagName(node, 'form');
-			var min = parseFloat(DOMHelpers.getAttributeValue(me.node, 'min'));
-			var max = parseFloat(DOMHelpers.getAttributeValue(me.node, 'max'));
+			var min = parseFloat(me.node.getAttribute('min'));
+			var max = parseFloat(me.node.getAttribute('max'));
 			
 			if (!window.fdSliderController) {
 				showError("slider.js must be included in order for the range element to work in this browser. See documentation for more details.");
@@ -363,7 +354,7 @@ var html5Widgets = new function(){
 			}
 			
 			
-			var step = DOMHelpers.getAttributeValue(me.node, 'step');
+			var step = me.node.getAttribute('step');
 			
 			if (step == null) {
 				step = "1"
@@ -430,11 +421,11 @@ var html5Widgets = new function(){
 			me.node.type = "text";
 			
 			// Event Handling
-			EventHelpers.addEvent(me.node, 'change', changeOriginalNodeEvent);
+			me.node.addEventListener('change', changeOriginalNodeEvent);
 		}
 		
 		me.changeEvent = function (e){
-			var oninput = DOMHelpers.getAttributeValue(parentForm, 'oninput');
+			var oninput = parentForm.getAttribute('oninput');
 			
 			if (oninput) {
 				eval(html5Widgets.getValueFormula(oninput, parentForm));
@@ -542,12 +533,12 @@ var html5Widgets = new function(){
 			
 			
 			
-			EventHelpers.addEvent(me.node, 'click', forceCalToTop);
-			EventHelpers.addEvent(me.node, 'focus', focusEvent)
-			EventHelpers.addEvent(me.node, 'keypress', openCalendar);
-			EventHelpers.addEvent(me.node, 'blur', closeCalendar);
+			me.node.addEventListener('click', forceCalToTop);
+			me.node.addEventListener('focus', focusEvent)
+			me.node.addEventListener('keypress', openCalendar);
+			me.node.addEventListener('blur', closeCalendar);
 			
-			EventHelpers.addEvent(me.node, 'keypress', keydownEvent)
+			me.node.addEventListener('keypress', keydownEvent)
 			//me.node.type = "text";
 			
 			// this will call submitEvent() after the form has been validated by
@@ -628,8 +619,8 @@ var html5Widgets = new function(){
 		}
 		
 		function focusEvent(e) {
-			var el = EventHelpers.getEventTarget(e);
-			EventHelpers.fireEvent(el, 'click')
+			var el = e.currentTarget;
+			html5Forms.fireEvent(el, 'click')
 		}
 		
 		function openCalendar(e) {
@@ -640,8 +631,8 @@ var html5Widgets = new function(){
 			if (cal.open != undefined) {
 				cal.open();
 			} 
-			//EventHelpers.fireEvent(this, 'blur');
-			//EventHelpers.fireEvent(this, 'focus');
+			//html5Forms.fireEvent(this, 'blur');
+			//html5Forms.fireEvent(this, 'focus');
 		}
 		
 		function closeCalendar(e){
@@ -654,20 +645,20 @@ var html5Widgets = new function(){
 		
 		function keydownEvent(e) {
 			
-		 	var c = EventHelpers.getKey(e);
+		 	var c = html5Forms.getKey(e);
 			
 			switch(c){
 				case 13:
 					html5Widgets.dummyLink.focus();
 					this.focus();
-					EventHelpers.preventDefault(e);
+					e.preventDefault();
 					openCalendar(e);
 					break;
 				case 9:
 					closeCalendar(e);
 					break;
 				default:
-					EventHelpers.preventDefault(e);
+					e.preventDefault();
 					break;
 			}
 			
@@ -707,7 +698,7 @@ var html5Widgets = new function(){
 				parentForm.id = getNextDummyID();
 			}
 			
-			valueFormula = html5Widgets.getValueFormula(DOMHelpers.getAttributeValue(me.node, 'onforminput'), parentForm);
+			valueFormula = html5Widgets.getValueFormula(me.node.getAttribute('onforminput'), parentForm);
 		}
 		
 		
@@ -737,8 +728,8 @@ var html5Widgets = new function(){
 			if (!window.jscolor) {
 				showError('jscolor script must be included in order for the color input type to work in this browser. See documentation for more details.')
 			}
-			CSSHelpers.addClass(me.node, 'color');
-			CSSHelpers.addClass(me.node, '{hash:true,caps:false}');
+			me.node.classList.add('color');
+			me.node.classList.add('{hash:true,caps:false}');
 			me.node.type = "text";
 		}
 		
@@ -752,9 +743,9 @@ var html5Widgets = new function(){
 	
 	function NumberElement (node) {
 		var me = this,
-			min = parseFloat(DOMHelpers.getAttributeValue(node, 'min')),
-			max = parseFloat(DOMHelpers.getAttributeValue(node, 'max')),
-			step = parseFloat(DOMHelpers.getAttributeValue(node, 'step'));
+			min = parseFloat(node.getAttribute('min')),
+			max = parseFloat(node.getAttribute('max')),
+			step = parseFloat(node.getAttribute('step'));
 		
 		me.node = node;
 		
@@ -765,7 +756,7 @@ var html5Widgets = new function(){
 			return;
 		}
 		
-		EventHelpers.addEvent(node, 'keyup', keyUpEvent);
+		node.addEventListener('keyup', keyUpEvent);
 		
 		
 		function keyUpEvent() {
@@ -792,7 +783,7 @@ var html5Widgets = new function(){
 			
 			var n = (value - min)/step,
 				r;
-			//alert(StringHelpers.sprintf("n: %s, value: %s, min: %s, step: %s", n, value, min, step))
+			
 			if (n == parseInt(n)) {
 				r = value;
 			} else {
@@ -849,7 +840,7 @@ var html5Widgets = new function(){
 					setValue(me.node, nearestValid(parseFloat(node.value) + stepMult, stepMult));
 				}
 			}, 50);
-			EventHelpers.preventDefault(e);
+			e.preventDefault();
 		}
 		
 		function setValue(node, value) {
@@ -862,11 +853,11 @@ var html5Widgets = new function(){
 		
 		function buttonClickEvent(e) {
 			clearInterval(this.interval);
-			EventHelpers.preventDefault(e);
+			e.preventDefault();
 		}
 		function buttonMouseUpEvent(e) {
 			clearInterval(this.interval);
-			EventHelpers.preventDefault(e);
+			e.preventDefault();
 		}
 		
 		function isNumeric(n) {
@@ -896,13 +887,13 @@ var html5Widgets = new function(){
 			dnbutton.min = min;
 			dnbutton.max = max;
 		
-			EventHelpers.addEvent(upbutton, 'mousedown', buttonMouseDownEvent);
-			EventHelpers.addEvent(dnbutton, 'mousedown', buttonMouseDownEvent);
+			upbutton.addEventListener('mousedown', buttonMouseDownEvent);
+			dnbutton.addEventListener('mousedown', buttonMouseDownEvent);
 			
-			EventHelpers.addEvent(upbutton, 'click', buttonClickEvent);
-			EventHelpers.addEvent(upbutton, 'mouseup', buttonMouseUpEvent);
-			EventHelpers.addEvent(dnbutton, 'click', buttonClickEvent);
-			EventHelpers.addEvent(dnbutton, 'mouseup', buttonMouseUpEvent);
+			upbutton.addEventListener('click', buttonClickEvent);
+			upbutton.addEventListener('mouseup', buttonMouseUpEvent);
+			dnbutton.addEventListener('click', buttonClickEvent);
+			dnbutton.addEventListener('mouseup', buttonMouseUpEvent);
 			
 			
 			if (!hasNativeSpinner()) {
@@ -923,7 +914,7 @@ var html5Widgets = new function(){
 				
 		
 				var nodeWidth = node.offsetWidth;
-				var nodeStyle = CSSHelpers.getCurrentStyle(node);
+				var nodeStyle = document.defaultView.getComputedStyle(node, null);
 			
 				node.style.width = (nodeWidth - upbutton.offsetWidth -9) + 'px';
 				wrapperNode.style.width = nodeWidth + 'px';
@@ -937,7 +928,7 @@ var html5Widgets = new function(){
 		/* Finally: if the form field has a value onload that is not a number, remove it 
 		if (!isNumeric(node.value)) {
 			node.value = '';
-			EventHelpers.fireEvent(node, 'change');
+			html5Forms.fireEvent(node, 'change');
 		}*/
 		init();
 	}
@@ -950,15 +941,15 @@ var html5Widgets = new function(){
 		var form, defaultText;
 				
 		function init () {
-			defaultText = DOMHelpers.getAttributeValue(node, 'placeholder');
+			defaultText = node.getAttribute('placeholder');
 			form = DOMHelpers.getAncestorByTagName(node, 'form');
 			
 			me.setPlaceholderText(true);
-			EventHelpers.addEvent(me.node, 'blur', blurEvent);
-			EventHelpers.addEvent(me.node, 'focus', focusEvent);
+			me.node.addEventListener('blur', blurEvent);
+			me.node.addEventListener('focus', focusEvent);
 			
 			if (me.node.form) {
-				EventHelpers.addEvent(me.node.form, 'submit', removePlaceholderText);
+				me.node.form.addEventListener('submit', removePlaceholderText);
 			}
 			
 			if (window.$wf2) {
@@ -973,18 +964,18 @@ var html5Widgets = new function(){
 		}
 		
 		me.setPlaceholderText = function (isLoadEvent) {
-			//jslog.debug(StringHelpers.sprintf('initiator: %s', this));
-			var isAutofocus = DOMHelpers.getAttributeValue(me.node, 'autofocus') != null;
+			
+			var isAutofocus = me.node.getAttribute('autofocus') != null;
 			
 			
 			if (me.node.value == "" || (isLoadEvent && me.node.value == defaultText)) {
-				CSSHelpers.addClass(me.node, 'html5-hasPlaceholderText');
+				me.node.classList.add('html5-hasPlaceholderText');
 				me.node.value = defaultText;
 				
 			}
 			
 			if (isLoadEvent && isAutofocus && me.node.value == defaultText ) {
-				CSSHelpers.removeClass(me.node, 'html5-hasPlaceholderText');
+				me.node.classList.remove('html5-hasPlaceholderText');
 				me.node.value = '';
 			}
 			
@@ -994,130 +985,32 @@ var html5Widgets = new function(){
 		
 		function focusEvent(e) {
 			
-			CSSHelpers.addClass(me.node, 'html5-hasFocus');
+			me.node.classList.add('html5-hasFocus');
 			removePlaceholderText();
 		}
 		
 		function blurEvent(e) {
 			//jslog.debug('removed focus on ' + me.node.name)
-			CSSHelpers.removeClass(me.node, 'html5-hasFocus');
+			me.node.classList.remove('html5-hasFocus');
 			me.setPlaceholderText();
 		}
 		
 		function removePlaceholderText() {
 			//jslog.debug('removePlaceholderText() for ' + me.node.name)
-			if (CSSHelpers.isMemberOfClass(me.node, 'html5-hasPlaceholderText')) {
+			if (me.node.classList.contains('html5-hasPlaceholderText')) {
 				me.node.value = "";
-				CSSHelpers.removeClass(me.node, 'html5-hasPlaceholderText');
+				me.node.classList.remove('html5-hasPlaceholderText');
 			}
 		}
 		
 		function postValidationEvent(e, didValidate) {
-			////jslog.debug(StringHelpers.sprintf('post Validation: %s, didValidate = %s, has focus = %s', me.node.name, didValidate, CSSHelpers.isMemberOfClass(me.node, 'html5-hasFocus') )	)
-			if (!didValidate && !CSSHelpers.isMemberOfClass(me.node, 'html5-hasFocus')) {
+			if (!didValidate && !me.node.classList.contains('html5-hasFocus')) {
 				me.setPlaceholderText();
 			} 
 		}
 		
 		init();
 	}
-	
-	var CSSHelpers = new function () {
-		var me = this;
-		
-		var blankRe = new RegExp('\\s');
-
-		/**
-		 * Generates a regular expression string that can be used to detect a class name
-		 * in a tag's class attribute.  It is used by a few methods, so I 
-		 * centralized it.
-		 * 
-		 * @param {String} className - a name of a CSS class.
-		 */
-		
-		function getClassReString(className) {
-			return '\\s'+className+'\\s|^' + className + '\\s|\\s' + className + '$|' + '^' + className +'$';
-		}
-		
-		function getClassPrefixReString(className) {
-			return '\\s'+className+'-[0-9a-zA-Z_]+\\s|^' + className + '[0-9a-zA-Z_]+\\s|\\s' + className + '[0-9a-zA-Z_]+$|' + '^' + className +'[0-9a-zA-Z_]+$';
-		}
-		
-		
-		/**
-		 * Make an HTML object be a member of a certain class.
-		 * 
-		 * @param {Object} obj - an HTML object
-		 * @param {String} className - a CSS class name.
-		 */
-		me.addClass = function (obj, className) {
-			
-			if (blankRe.test(className)) {
-				return;
-			}
-			
-			// only add class if the object is not a member of it yet.
-			if (!me.isMemberOfClass(obj, className)) {
-				obj.className += " " + className;
-			}
-			
-		}
-		
-		/**
-		 * Make an HTML object *not* be a member of a certain class.
-		 * 
-		 * @param {Object} obj - an HTML object
-		 * @param {Object} className - a CSS class name.
-		 */
-		me.removeClass = function (obj, className) {
-			
-			if (blankRe.test(className)) {
-				return; 
-			}
-			
-			
-			var re = new RegExp(getClassReString(className) , "g");
-			
-			var oldClassName = obj.className;
-		
-		
-			if (obj.className) {
-				obj.className = oldClassName.replace(re, ' ');
-			}
-		
-		}
-		
-		/**
-		 * Determines if an HTML object is a member of a specific class.
-		 * @param {Object} obj - an HTML object.
-		 * @param {Object} className - the CSS class name.
-		 */
-		me.isMemberOfClass = function (obj, className) {
-			
-			if (blankRe.test(className))
-				return false;
-			
-			var re = new RegExp(getClassReString(className) , "g");
-		
-			return (re.test(obj.className));
-		
-		
-		}
-		
-		/* from http://blog.stchur.com/2006/06/21/css-computed-style/ */
-		me.getCurrentStyle = function(obj)
-		{
-		  var computedStyle;
-		  if (typeof obj.currentStyle != 'undefined')
-		    { computedStyle = obj.currentStyle; }
-		  else
-		    { computedStyle = document.defaultView.getComputedStyle(obj, null); }
-		
-		  return computedStyle;
-		}
-	}
-	
-	
 	
 	var DOMHelpers = new function () {
 		var me = this;
@@ -1141,31 +1034,7 @@ var html5Widgets = new function(){
 			}
 			return null;
 		}
-		/**
-		 * Given an HTML or XML object, find the value of an attribute.
-		 * 
-		 * @param {Object} obj - a DOM object.
-		 * @param {String} attrName - the name of an attribute inside the DOM object.
-		 * @return {String} - the value of the attribute.
-		 */
-		me.getAttributeValue = function (obj, attrName) {
-			var attr = me.getAttributeByName(obj, attrName);
-			
-			if (attr != null) {
-				return attr.nodeValue;
-			} else {
-				var typeRe = new RegExp(attrName + '=(\\"([a-zA-Z\-]*)\\"|[a-zA-Z\-]*)');
-				//jslog.debug(XMLHelpers.getOuterXML(obj))
-				var typeVal = XMLHelpers.getOuterXML(obj).split('>')[0].match(typeRe);
-				//jslog.debug(typeVal)
-				if (typeVal && typeVal.length >= 1) {
-					return typeVal[1].replace(quoteRe, '');
-				} else {
-					return null;
-				}
-	
-			}
-		}
+		
 		
 		me.insertAfter = function (refNode, nodeToInsert) {
 			var parent = refNode.parentNode;
@@ -1230,7 +1099,7 @@ var html5Widgets = new function(){
 		      { var ps='';
 		        for(var i=0; i<Math.abs(len); i++) ps+=ch;
 		        return len>0?str+ps:ps+str;
-		      }
+		     };
 		    var processFlags = function(flags,width,rs,arg)
 		      { var pn = function(flags,arg,rs)
 		          { if(arg>=0)
@@ -1254,45 +1123,45 @@ var html5Widgets = new function(){
 		            else rs = pad(rs,' ',iWidth - rs.length);
 		          }    
 		        return rs;
-		      }
+		     };
 		    var converters = new Array();
 		    converters['c'] = function(flags,width,precision,arg)
 		      { if(typeof(arg) == 'number') return String.fromCharCode(arg);
 		        if(typeof(arg) == 'string') return arg.charAt(0);
 		        return '';
-		      }
+		     };
 		    converters['d'] = function(flags,width,precision,arg)
 		      { return converters['i'](flags,width,precision,arg); 
-		      }
+		     };
 		    converters['u'] = function(flags,width,precision,arg)
 		      { return converters['i'](flags,width,precision,Math.abs(arg)); 
-		      }
+		     };
 		    converters['i'] =  function(flags,width,precision,arg)
 		      { var iPrecision=parseInt(precision);
 		        var rs = ((Math.abs(arg)).toString().split('.'))[0];
 		        if(rs.length<iPrecision) rs=pad(rs,' ',iPrecision - rs.length);
 		        return processFlags(flags,width,rs,arg); 
-		      }
+		      };
 		    converters['E'] = function(flags,width,precision,arg) 
 		      { return (converters['e'](flags,width,precision,arg)).toUpperCase();
-		      }
+		     };
 		    converters['e'] =  function(flags,width,precision,arg)
 		      { iPrecision = parseInt(precision);
 		        if(isNaN(iPrecision)) iPrecision = 6;
 		        rs = (Math.abs(arg)).toExponential(iPrecision);
 		        if(rs.indexOf('.')<0 && flags.indexOf('#')>=0) rs = rs.replace(/^(.*)(e.*)$/,'$1.$2');
 		        return processFlags(flags,width,rs,arg);        
-		      }
+		      };
 		    converters['f'] = function(flags,width,precision,arg)
 		      { iPrecision = parseInt(precision);
 		        if(isNaN(iPrecision)) iPrecision = 6;
 		        rs = (Math.abs(arg)).toFixed(iPrecision);
 		        if(rs.indexOf('.')<0 && flags.indexOf('#')>=0) rs = rs + '.';
 		        return processFlags(flags,width,rs,arg);
-		      }
+		      };
 		    converters['G'] = function(flags,width,precision,arg)
 		      { return (converters['g'](flags,width,precision,arg)).toUpperCase();
-		      }
+		     };
 		    converters['g'] = function(flags,width,precision,arg)
 		      { iPrecision = parseInt(precision);
 		        absArg = Math.abs(arg);
@@ -1308,17 +1177,17 @@ var html5Widgets = new function(){
 		        if(rsf.indexOf('.')<0 && flags.indexOf('#')>=0) rsf = rsf + '.';
 		        rs = rse.length<rsf.length ? rse : rsf;
 		        return processFlags(flags,width,rs,arg);        
-		      }  
+		      };
 		    converters['o'] = function(flags,width,precision,arg)
 		      { var iPrecision=parseInt(precision);
 		        var rs = Math.round(Math.abs(arg)).toString(8);
 		        if(rs.length<iPrecision) rs=pad(rs,' ',iPrecision - rs.length);
 		        if(flags.indexOf('#')>=0) rs='0'+rs;
 		        return processFlags(flags,width,rs,arg); 
-		      }
+		      };
 		    converters['X'] = function(flags,width,precision,arg)
 		      { return (converters['x'](flags,width,precision,arg)).toUpperCase();
-		      }
+		     };
 		    converters['x'] = function(flags,width,precision,arg)
 		      { var iPrecision=parseInt(precision);
 		        arg = Math.abs(arg);
@@ -1326,13 +1195,13 @@ var html5Widgets = new function(){
 		        if(rs.length<iPrecision) rs=pad(rs,' ',iPrecision - rs.length);
 		        if(flags.indexOf('#')>=0) rs='0x'+rs;
 		        return processFlags(flags,width,rs,arg); 
-		      }
+		      };
 		    converters['s'] = function(flags,width,precision,arg)
 		      { var iPrecision=parseInt(precision);
 		        var rs = arg;
 		        if(rs.length > iPrecision) rs = rs.substring(0,iPrecision);
 		        return processFlags(flags,width,rs,0);
-		      }
+		      };
 		    farr = fstring.split('%');
 		    retstr = farr[0];
 		    fpRE = /^([-+ #]*)(\d*)\.?(\d*)([cdieEfFgGosuxX])(.*)$/;
@@ -1343,75 +1212,12 @@ var html5Widgets = new function(){
 		        retstr += fps[5];
 		      }
 		    return retstr;
-		}
-	}
-	
-	var XMLHelpers = new function () {
-		var me = this;
-		
-		/**
-		 * Given an XML node, return the XML inside as a string and the XML string of the node itself.
-		 * Similar to Internet Explorer's outerHTML property, except it is for XML, not HTML.
-		 * Created with information from http://www.codingforums.com/showthread.php?t=31489
-		 * and http://www.mercurytide.co.uk/whitepapers/issues-working-with-ajax/		
-		 * 
-		 * @param {Object} node - a DOM object.
-		 * @param {Object} options - a JS object containing options.  To date,
-		 * 		the only one supported is "insertClosingTags", when set to
-		 * 		true, converts self closing tags, like <td />, to <td></td>.
-		 * @return {String} - the XML String inside the object.
-		 */
-		me.getOuterXML = function (node, options) {
-			var r;
-				// Internet Explorer
-				if (node.xml) {
-					r = node.xml;
-					
-				// Everyone else 
-				} else if (node.outerHTML) { 
-					r = node.outerHTML;
-				} else if (window.XMLSerializer) {
-				
-					var serializer = new XMLSerializer();
-	    			var text = serializer.serializeToString(node);
-					r = text;
-				} else {
-					return null;
-				}
-				
-				/*
-				 * If the XML is actually HTML and you are inserting it into an HTML
-				 * document, you must use the "insertClosingTags" option, otherwise
-				 * Opera will not like you, especially if you have empty <td> tags.
-				 */
-				if (options) {
-					if (options.insertClosingTags) {
-						r = r.replace(selfClosingTagRe, "<$1></$1>");
-					}
-				}
-				return r;
-		}
-	}
-	
-	
-	// default styles 
-	var placeholderCSS = 'color: #999999; font-style: italic';
-	var placeholderRequiredCSS = 'color: #ffcccc !important;'
-	
-	var sb = "";
-	
-	// has to be two seperate rules, or some browsers, like firefox, will not use the rule.
-	if (document.getElementsByTagName('body').length == 0) {
-		sb = '<style type="text/css" id="testCSS">' +
-		StringHelpers.sprintf('.html5-hasPlaceholderText{%s} input::-webkit-input-placeholder {%s}', placeholderCSS, placeholderCSS) +
-		'</style>';
-		
-		
-		document.write(sb);
-	}
+		};
+	};
+};
+
+if (/loaded|complete|interactive/.test(document.readyState)) {
+	html5Widgets.init();
+} else {
+	document.addEventListener("DOMContentLoaded", html5Widgets.init, null);
 }
-
-
-
-EventHelpers.addPageLoadEvent('html5Widgets.init');
-

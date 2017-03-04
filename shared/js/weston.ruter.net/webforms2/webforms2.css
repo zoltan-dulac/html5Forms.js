@@ -137,10 +137,14 @@ form:not(.wf2-keep-native-style) ::-webkit-validation-bubble-icon {
 	position: absolute;
 	top: -15px;
 	left: 10px;
-
-	
 }
 
+.wf2-dummyFocusableEl {
+	position: absolute;
+	width: 0;
+	height: 0;
+	overflow: hidden;
+}
 /*
 input:invalid {
 	box-shadow: 0 0 3px rgba(255, 0, 0, 0.7);

@@ -59,7 +59,6 @@ $wf2 = {
 	
 	
 	onDOMContentLoaded : function() {
-		console.log('xxxx');
 		var i,j,k,node;
 		
 		//set global event for fireEvent method
@@ -79,6 +78,12 @@ $wf2 = {
 		if(!parent)
 			parent = document.getElementsByTagName('*')[0];
 		parent.insertBefore(style, parent.firstChild);
+		
+		// Make a hidden element we can focus on when we need it.
+		$wf2.dummyFocusableEl = document.createElement('div');
+		$wf2.dummyFocusableEl.setAttribute('tabindex', '-1');
+		$wf2.dummyFocusableEl.className = 'wf2-dummyFocusableEl';
+		document.body.appendChild($wf2.dummyFocusableEl);
 
 		//The zero point for datetime  controls is 1970-01-01T00:00:00.0Z, for datetime-local is
 		//   1970-01-01T00:00:00.0, for date controls is 1970-01-01, for month controls is 1970-01, for week
@@ -596,6 +601,34 @@ $wf2 = {
 		return valid;
 	},
 	
+	focusAndScrollToView: function (el) {
+		
+		var elRect = el.getBoundingClientRect(),
+			elOnTop = document.elementFromPoint(elRect.left, elRect.top);
+		
+		if (document.activeElement === el) {
+			console.log('xxx', document.activeElement, el);
+			$wf2.dummyFocusableEl.focus();
+			
+			// If we do not pause for half a second, Voiceover will not read out
+			// where it is focused.  There doesn't seem to be any other
+			// workaround for this.
+			setTimeout(function () {
+				console.log('delayed');
+				if (el) {
+					$wf2.focusAndScrollToView(el);
+				}
+			}, 500);
+		} else {
+			el.focus()
+		}
+
+		if (elOnTop && elOnTop !== el) {
+			var topElRect = elOnTop.getBoundingClientRect();
+			window.scrollBy(0, topElRect.top - topElRect.bottom);
+		}
+	},
+	
 	hiliteFirstError: function () {
 		
 		if($wf2.invalidIndicators.length){ //second condition needed because modal in oninvalid handler may cause indicators to disappear before this is reached
@@ -622,15 +655,9 @@ $wf2 = {
 			}
 			//focus on the first invalid control and make sure error message is visible
 			else {
-				
-				setTimeout(
-					function() {
-						el.focus();
-						$wf2.fireEvent(el, 'focus');
-					}
-				, 10)
-				
-				
+				$wf2.focusAndScrollToView(el);
+				$wf2.fireEvent(el, 'focus');
+
 				var elPos = $wf2.css.getAbsoluteCoords(el);
 				var maxBottom = $wf2.css.getScrollY() + $wf2.css.getWindowHeight();
 				var errorMsgHeight = $wf2.invalidIndicators[0].errorMsg.offsetHeight;
@@ -1513,7 +1540,7 @@ $wf2 = {
 		//msg.title = "Close";
 		msg.id = (target.id || target.name) + '_wf2_errorMsg'; //QUESTION: does this work for MSIE?
 		
-		$wf2.addToAttrList(target, 'aria-labelledby', msg.id);
+		$wf2.addToAttrList(target, 'aria-describedby', msg.id);
 		msg.onmousedown = function(){
 			this.parentNode.removeChild(this);
 		};

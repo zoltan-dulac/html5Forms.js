@@ -1,5 +1,4 @@
 @import url("useragentmanExample.css");
-@import url("basicForm.css");
 
 form {
 	width: 600px;
@@ -17,10 +16,13 @@ label {
 	width: 40%;
 }
 
+input {
+	width: calc(60% - 3em);
+}
+
 input[required], select[required] {
 	background: #ffffee url("../images/asterix.gif")  no-repeat left 2px !important;
 	padding-left: 1.5em;
-	width: auto !important;
 }
 
 input[type="radio"], input[type="checkbox"] {
@@ -47,5 +49,20 @@ input[type="submit"] {
 	margin: 0 auto;	
 }
 
+input.range {
+	
+	width: 11em !important;
+}
+
+output.withRange {
+	display: inline-block;
+	margin-right: 0em;
+	width: 3em;
+}
 
 
+.description {
+	font-size: 0.8em;
+	font-style: italic;
+	margin: 0.5em 0 1em 40%;
+}
